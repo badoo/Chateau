@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@android:color/white"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/chatTextInput_editText"
+            android:background="@android:color/transparent"
+            android:layout_marginLeft="@dimen/keyline1"
+            android:layout_marginRight="@dimen/horizontalMargin"
+            android:layout_marginTop="@dimen/verticalMargin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/prompt_message"
+            android:inputType="textCapSentences|textShortMessage|textImeMultiLine|textMultiLine"
+            tools:text="Whoa, this is a very long message that will be split into several lines for sure. Otherwise something must be broken!" />
+
+        <LinearLayout
+            android:id="@+id/chatTextInput_actionsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="@dimen/verticalMargin"
+            android:orientation="horizontal" />
+
+    </LinearLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:visibility="invisible"
+        android:id="@+id/chatTextInput_sendEnabled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_marginRight="@dimen/horizontalMargin"
+        android:layout_marginBottom="@dimen/verticalMargin"
+        android:src="@drawable/ic_send"
+        android:tint="@android:color/white"
+        app:fabSize="mini" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/chatTextInput_sendDisabled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:layout_marginRight="@dimen/horizontalMargin"
+        android:layout_marginBottom="@dimen/verticalMargin"
+        android:src="@drawable/ic_send"
+        android:tint="#98aab4"
+        app:backgroundTint="@color/grey300"
+        app:fabSize="mini" />
+
+
+</FrameLayout>

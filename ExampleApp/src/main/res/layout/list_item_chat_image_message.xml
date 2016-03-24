@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="right"
+    android:orientation="vertical"
+    android:padding="@dimen/paddingNormal">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/message_error"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_error_small" />
+
+        <com.badoo.chateau.example.ui.widgets.TintableBackgroundLinearLayout
+            android:id="@+id/message_background"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_chat_bubble_right"
+            android:orientation="vertical"
+            app:backgroundTint="@color/tint_chat_bubble">
+
+            <TextView
+                android:id="@+id/message_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+                tools:text="Hello this is a message" />
+
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <com.facebook.drawee.view.SimpleDraweeView
+                    android:id="@+id/message_image"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginTop="8dp"
+                    app:actualImageScaleType="focusCrop"
+                    app:placeholderImage="@drawable/image_placeholder"
+                    app:roundedCornerRadius="8dp" />
+
+                <android.support.v4.widget.ContentLoadingProgressBar
+                    android:visibility="gone"
+                    android:id="@+id/message_imageProgress"
+                    style="?android:attr/progressBarStyleLarge"
+                    android:indeterminate="true"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center"/>
+
+            </FrameLayout>
+        </com.badoo.chateau.example.ui.widgets.TintableBackgroundLinearLayout>
+
+    </LinearLayout>
+
+    <include layout="@layout/control_timestamp" />
+</LinearLayout>
+

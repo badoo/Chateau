@@ -1,0 +1,61 @@
+apply plugin: 'com.android.application'
+apply plugin: 'jacoco-everywhere'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        applicationId "com.badoo.chateau.example"
+        minSdkVersion 15
+        targetSdkVersion 21
+        versionCode 2
+        versionName "1.1"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "PARSE_APP_ID", '"5mvTdDFlvmCdsFOmwgv1YHmHXGL8lXjgqrshi213"'
+        buildConfigField "String", "PARSE_CLIENT_KEY", '"GlSPvhgK70usYhOZeKiNEISI0VQYJaOCpHoNxcLU"'
+        buildConfigField "String", "SOCKET_NOTIFICATION_ENDPOINT", '"ec2-52-49-166-124.eu-west-1.compute.amazonaws.com"'
+    }
+    buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+dependencies {
+    compile project(':Chateau')
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
+    compile 'com.parse:parse-android:1.13.0'
+
+    compile 'net.hockeyapp.android:HockeySDK:3.7.0'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile 'org.hamcrest:hamcrest-library:1.3'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+    androidTestCompile('com.android.support.test.espresso:espresso-contrib:2.2.1') {
+        exclude module: 'support-annotations'
+        exclude module: 'support-v4'
+        exclude module: 'support-v13'
+        exclude module: 'recyclerview-v7'
+    }
+    androidTestCompile 'com.android.support:support-annotations:23.1.1'
+    androidTestCompile 'org.mockito:mockito-core:1.10.19'
+    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
+    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
+
+}
