@@ -43,7 +43,7 @@ Contains the application's use cases which encapsulate application specific busi
 
 ##### Data Layer
 
-Finally the data layer contains interaction with the network, databases or other locations where data can be retrieved or stored.  Changing the underlying implementation should not effect the other two layers.
+Finally the data layer contains interaction with the network, databases or other locations where data can be retrieved or stored.  Changing the underlying implementation should not affect the other two layers.
 
 ##### Further reading
 
