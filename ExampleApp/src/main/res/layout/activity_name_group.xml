@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/verticalMargin"
+    android:paddingLeft="@dimen/horizontalMargin"
+    android:paddingRight="@dimen/horizontalMargin"
+    android:paddingTop="@dimen/verticalMargin"
+    tools:context=".ui.conversations.create.namegroup.NameGroupActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/info_please_enter_a_name_or_subject_for_your_group" />
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/nameGroup_groupName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/nameGroup_groupName_inner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/prompt_group_name"
+            android:inputType="textShortMessage|textCapSentences"
+            android:maxLines="1" />
+
+    </android.support.design.widget.TextInputLayout>
+
+    <Button
+        android:id="@+id/nameGroup_createGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/action_create_group" />
+</LinearLayout>

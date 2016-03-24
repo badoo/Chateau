@@ -1,0 +1,11 @@
+<resources>
+    <dimen name="keyline1">16dp</dimen>
+    <dimen name="keyline2">72dp</dimen>
+
+    <dimen name="paddingNormal">8dp</dimen>
+
+    <dimen name="horizontalMargin">16dp</dimen>
+    <dimen name="verticalMargin">16dp</dimen>
+
+    <dimen name="chatBubbleMargin">24dp</dimen>
+</resources>

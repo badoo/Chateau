@@ -1,0 +1,93 @@
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+
+ext {
+    versionName = '1.0.0-preview1'
+}
+group = 'com.badoo.chateau'
+version = versionName
+
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+                groupId 'com.badoo.chateau'
+                artifactId artifactId
+
+                name 'Chateau'
+                description 'libraryDescription'
+                url 'https://github.com/badoo/Chateau.git'
+
+                licenses {
+                    license {
+                        name 'The MIT License (MIT)'
+                        url 'https://github.com/badoo/Chateau/blob/master/LICENSE.md'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'kingamajick'
+                        name 'Rich King'
+                        email 'rich.king@corp.badoo.com'
+                    }
+                    developer {
+                        id 'erikandre'
+                        name 'Erik André'
+                        email 'erik.andre@corp.badoo.com'
+                    }
+                }
+                scm {
+                    connection 'https://github.com/badoo/Chateau.git'
+                    developerConnection 'https://github.com/badoo/Chateau.git'
+                    url 'https://github.com/badoo/Chateau'
+                }
+            }
+        }
+    }
+}
+
+// Generate and jar the sources and javadoc
+android.libraryVariants.all { variant ->
+    def name = variant.name.capitalize()
+
+    def sourcesJarTask = project.tasks.create(name: "sourcesJar${name}", type: Jar) {
+        from variant.javaCompile.source
+        classifier 'sources'
+    }
+    artifacts.add('archives', sourcesJarTask);
+
+    def javadocTask = project.tasks.create(name: "javadoc${name}", type: Javadoc) {
+        description = "Generates javadoc for build ${name}"
+        failOnError = false
+        destinationDir = new File(destinationDir, variant.baseName)
+        source = files(variant.javaCompile.source)
+        classpath = files(variant.javaCompile.classpath.files) + files(android.bootClasspath)
+        exclude '**/R.java', '**/BuildConfig.java'
+        options.links("http://docs.oracle.com/javase/7/docs/api/")
+        options.linksOffline("http://d.android.com/reference/", "$System.env.ANDROID_HOME/docs/reference")
+    }
+
+    def javadocJarTask = project.tasks.create(name: "javadocJar${name}", type: Jar, dependsOn: "javadoc${name}") {
+        from javadocTask.destinationDir
+        classifier = 'javadoc'
+    }
+    artifacts.add('archives', javadocJarTask);
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+    dryRun = false
+    configurations = ['archives']
+    pkg {
+        repo = 'maven'
+        name = 'chateau'
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/badoo/Chateau.git'
+        version {
+            name = versionName
+        }
+    }
+}

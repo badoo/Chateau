@@ -1,0 +1,38 @@
+<resources>
+    <string name="app_name">Chateau Demo</string>
+
+    <string name="title_activity_login">Sign in</string>
+    <string name="title_activity_register">Register</string>
+    <string name="title_activity_conversations">@string/app_name</string>
+    <string name="title_activity_select_users">Select users</string>
+
+    <!-- Strings related to login / register-->
+    <string name="prompt_username">User name</string>
+    <string name="prompt_display_name">Display name</string>
+    <string name="prompt_password">Password</string>
+    <string name="prompt_message">Write a message</string>
+    <string name="prompt_group_name">Group name</string>
+
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="action_not_registered">Not registered? Click to register.</string>
+    <string name="action_register">Register</string>
+    <string name="action_register_short">Register</string>
+    <string name="action_already_register">Already registered? Click to sign in.</string>
+    <string name="action_create_group">Create Group</string>
+    <string name="action_delete">Delete</string>
+
+    <string name="error_sign_in_failed">This password or user name is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+
+    <string name="info_select_users_for_group_chat">Select users for group chat</string>
+    <string name="info_please_enter_a_name_or_subject_for_your_group">Please enter a name or subject for your group</string>
+    <string name="info_last_message_image">%1$s Image</string>
+
+    <string name="title_selected_items">%1$d selected</string>
+
+    <!-- Chat -->
+    <string name="is_typing">typing...</string>
+    <string name="error_registration">Registration failed, please try again later</string>
+    <string name="error_login">Sign in failed, please try again later</string>
+</resources>

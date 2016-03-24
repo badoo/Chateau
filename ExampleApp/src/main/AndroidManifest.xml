@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.badoo.chateau.example"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!--
+      IMPORTANT: Change "com.parse.starter.permission.C2D_MESSAGE" in the lines below
+      to match your app's package name + ".permission.C2D_MESSAGE".
+    -->
+    <permission
+        android:name="com.badoo.chateau.example.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.badoo.chateau.example.permission.C2D_MESSAGE" />
+
+    <application
+        android:name=".ChatExampleApp"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".ui.LandingActivity"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.session.register.RegisterActivity"
+            android:label="@string/title_activity_register"
+            android:theme="@style/AppTheme.NoIcon"
+            android:windowSoftInputMode="stateHidden" />
+
+        <activity
+            android:name=".ui.session.login.LoginActivity"
+            android:label="@string/title_activity_login"
+            android:theme="@style/AppTheme.NoIcon"
+            android:windowSoftInputMode="stateHidden" />
+
+        <activity
+            android:name=".ui.conversations.list.ConversationListActivity"
+            android:theme="@style/AppTheme.NoIcon" />
+
+        <activity
+            android:name=".ui.conversations.create.selectusers.SelectUserActivity"
+            android:label="@string/title_activity_select_users">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.conversations.list.ConversationListActivity" />
+        </activity>
+
+        <activity android:name=".ui.conversations.create.namegroup.NameGroupActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ui.conversations.list.ConversationListActivity" />
+        </activity>
+
+        <activity android:name=".ui.chat.ChatActivity" />
+        <activity
+            android:name=".ui.chat.FullScreenImageActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
+
+        <service android:name=".data.repos.messages.ImageUploadService" />
+        <service android:name="com.parse.PushService" />
+
+        <receiver
+            android:name=".PushReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.parse.push.intent.RECEIVE" />
+                <action android:name="com.parse.push.intent.DELETE" />
+                <action android:name="com.parse.push.intent.OPEN" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="com.parse.GcmBroadcastReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+
+                <category android:name="com.badoo.chateau.example" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>
