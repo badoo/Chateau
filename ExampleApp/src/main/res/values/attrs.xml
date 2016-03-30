@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="AppTheme">
+        <attr name="colorPrimaryLight" format="color" />
+        <attr name="colorAccentLight" format="color" />
+        <attr name="colorAccentDark" format="color" />
+
+        <attr name="actionBarInsetStart" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="ChatTextInputView">
+        <attr name="actionMenu" format="reference" />
+    </declare-styleable>
+
+</resources>
