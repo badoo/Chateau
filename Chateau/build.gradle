@@ -7,7 +7,7 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 23
-        versionName libraryVersionName
+        versionName chateauLibraryVersionName
     }
     buildTypes {
         release {
@@ -37,5 +37,4 @@ dependencies {
 ext {
     artifactId = 'chataeu'
 }
-
 apply from: '../release.gradle'

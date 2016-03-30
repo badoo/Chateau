@@ -29,11 +29,7 @@ allprojects {
     apply plugin: 'me.tatarka.retrolambda'
 }
 
-ext {
-    libraryVersionName = '1.0.0-preview1'
-    exampleAppVersionName = '1.0.0-preview1'
-    exampleAppVersionCode = 1
-}
+apply from: './versions.gradle'
 
 task clean(type: Delete) {
     delete rootProject.buildDir
