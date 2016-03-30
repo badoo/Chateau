@@ -1,6 +1,10 @@
 The MIT License (MIT)
 
+<<<<<<< HEAD
+Copyriht (c) 2016 Badoo Development
+=======
 Copyright (c) 2016 Badoo Development.
+>>>>>>> [dev]: Another test of subrepo commits
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
