@@ -26,7 +26,6 @@ allprojects {
     repositories {
         jcenter()
     }
-    apply plugin: 'me.tatarka.retrolambda'
 }
 
 apply from: './versions.gradle'
