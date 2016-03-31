@@ -36,6 +36,6 @@ dependencies {
 }
 
 ext {
-    artifactId = 'chataeu'
+    artifactId = 'chateau'
 }
 apply from: '../release.gradle'
