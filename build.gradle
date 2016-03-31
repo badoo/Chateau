@@ -8,7 +8,7 @@ buildscript {
     dependencies {
         //The fork of lombok.ast (which is used by lint internaly) to support java 8 AST
         classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
-        classpath 'com.android.tools.build:gradle:2.0.0-rc1'
+        classpath 'com.android.tools.build:gradle:1.5.0-beta1'
         classpath 'me.tatarka:gradle-retrolambda:3.2.4'
         classpath 'com.trickyandroid:jacoco-everywhere:0.2.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'
@@ -21,6 +21,10 @@ buildscript {
     // Exclude the version that the android plugin depends on.
     configurations.classpath.exclude group: 'com.android.tools.external.lombok'
 }
+
+// Because having a reg ex for version checking that only goes to one digit is super sensible, so 10 < 2
+// https://android.googlesource.com/platform/tools/base/+/master/build-system/gradle/src/main/groovy/com/android/build/gradle/BasePlugin.java#113
+System.properties['com.android.build.gradle.overrideVersionCheck'] = 'true'
 
 allprojects {
     repositories {
