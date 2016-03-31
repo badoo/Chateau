@@ -1,1 +1,1 @@
-include ':Chateau', ':Barf', ':ChateauCore', ':ExampleApp'
+include ':Chateau', ':Barf', ':ChateauCore', ':ExampleApp', ':ChateauExtras'
