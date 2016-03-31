@@ -8,7 +8,7 @@ buildscript {
     dependencies {
         //The fork of lombok.ast (which is used by lint internaly) to support java 8 AST
         classpath 'me.tatarka.retrolambda.projectlombok:lombok.ast:0.2.3.a2'
-        classpath 'com.android.tools.build:gradle:2.0.0-beta7'
+        classpath 'com.android.tools.build:gradle:2.0.0-rc1'
         classpath 'me.tatarka:gradle-retrolambda:3.2.4'
         classpath 'com.trickyandroid:jacoco-everywhere:0.2.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.6'

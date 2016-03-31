@@ -64,7 +64,6 @@ public abstract class ConversationQuery implements Query {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
 
             CreateConversationQuery that = (CreateConversationQuery) o;
 
@@ -113,7 +112,6 @@ public abstract class ConversationQuery implements Query {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
 
             CreateGroupConversationQuery that = (CreateGroupConversationQuery) o;
 

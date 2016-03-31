@@ -22,7 +22,6 @@ public abstract class IsTypingQuery implements Query {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
 
             SendIsTyping that = (SendIsTyping) o;
 
@@ -61,7 +60,6 @@ public abstract class IsTypingQuery implements Query {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
 
             SubscribeToUsersTyping that = (SubscribeToUsersTyping) o;
 

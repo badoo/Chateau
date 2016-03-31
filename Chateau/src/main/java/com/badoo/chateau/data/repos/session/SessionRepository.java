@@ -68,5 +68,28 @@ public class SessionRepository implements Repository<SessionRepository.SessionQu
             mPassword = password;
             mDisplayName = displayName;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            SessionQuery that = (SessionQuery) o;
+
+            if (mType != that.mType) return false;
+            if (mUserName != null ? !mUserName.equals(that.mUserName) : that.mUserName != null) return false;
+            if (mPassword != null ? !mPassword.equals(that.mPassword) : that.mPassword != null) return false;
+            return mDisplayName != null ? mDisplayName.equals(that.mDisplayName) : that.mDisplayName == null;
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = mType.hashCode();
+            result = 31 * result + (mUserName != null ? mUserName.hashCode() : 0);
+            result = 31 * result + (mPassword != null ? mPassword.hashCode() : 0);
+            result = 31 * result + (mDisplayName != null ? mDisplayName.hashCode() : 0);
+            return result;
+        }
     }
 }

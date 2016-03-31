@@ -32,7 +32,6 @@ public abstract class MessageQuery implements Query {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
 
             final GetMessages that = (GetMessages) o;
 
@@ -73,7 +72,6 @@ public abstract class MessageQuery implements Query {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
 
             SubscribeToNewMessagesForConversation that = (SubscribeToNewMessagesForConversation) o;
 
@@ -112,7 +110,6 @@ public abstract class MessageQuery implements Query {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
 
             GetUpdatedMessagesForConversation that = (GetUpdatedMessagesForConversation) o;
 
@@ -157,7 +154,6 @@ public abstract class MessageQuery implements Query {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
 
             SendMessage that = (SendMessage) o;
 
@@ -198,7 +194,6 @@ public abstract class MessageQuery implements Query {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            if (!super.equals(o)) return false;
 
             UserIsTypingQuery that = (UserIsTypingQuery) o;
 

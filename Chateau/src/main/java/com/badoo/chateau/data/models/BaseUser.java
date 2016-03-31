@@ -39,6 +39,25 @@ public class BaseUser implements User, Parcelable {
         this.mDisplayName = in.readString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        BaseUser baseUser = (BaseUser) o;
+
+        if (mUserId != null ? !mUserId.equals(baseUser.mUserId) : baseUser.mUserId != null) return false;
+        return mDisplayName != null ? mDisplayName.equals(baseUser.mDisplayName) : baseUser.mDisplayName == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = mUserId != null ? mUserId.hashCode() : 0;
+        result = 31 * result + (mDisplayName != null ? mDisplayName.hashCode() : 0);
+        return result;
+    }
+
     public static final Parcelable.Creator<BaseUser> CREATOR = new Parcelable.Creator<BaseUser>() {
         public BaseUser createFromParcel(Parcel source) {
             return new BaseUser(source);
