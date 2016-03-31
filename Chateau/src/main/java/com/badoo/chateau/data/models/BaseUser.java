@@ -58,13 +58,4 @@ public class BaseUser implements User, Parcelable {
         return result;
     }
 
-    public static final Parcelable.Creator<BaseUser> CREATOR = new Parcelable.Creator<BaseUser>() {
-        public BaseUser createFromParcel(Parcel source) {
-            return new BaseUser(source);
-        }
-
-        public BaseUser[] newArray(int size) {
-            return new BaseUser[size];
-        }
-    };
 }
