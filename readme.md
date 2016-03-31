@@ -55,7 +55,7 @@ As the above only gives a rough overview of clean architecture I'd strongly reco
 
 ### Using Repositories and Datasources
 
-The data layers consists of repositories and data sources.  Generally repositories are used to map queries to data sources.  The aid with this, the [DelegatingRepository.java](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/data/repo/DelegatingRepository.java) has been created, which allows query handlers to be registered for each query which in turn map them to a data source.  It is also possible to annotate a data source using the [ChatExampleApp.java](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/data/repo/annotations/Handles.java) annoatation.  Currently this is progressed using reflection, but there is a future task to before this via an annoation processor.
+The data layers consists of repositories and data sources.  Generally repositories are used to map queries to data sources.  The aid with this, the [DelegatingRepository.java](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/data/repo/DelegatingRepository.java) has been created, which allows query handlers to be registered for each query which in turn map them to a data source.  It is also possible to annotate a data source using the [Handles.java](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/data/repo/annotations/Handles.java) annoatation.  Currently this is progressed using reflection, but there is a future task to before this via an annoation processor.
 
 Examples of the configuration of Repositories and Datasources can be found in [ChatExampleApp.java](https://github.com/badoo/Chateau/tree/master/ExampleApp/src/main/java/com/badoo/chateau/example/ChatExampleApp.java).
 
@@ -108,7 +108,7 @@ The main library containing implementations for the different Presenters which t
 
 A simple example app which shows how to to integrate Chateau with your UI and backend. Contains the concrete View and DataSource implementations as well as the UI (Activities and layouts).
 
-## Third party dependancies
+## Third party dependencies
 
  * [RxJava](https://github.com/ReactiveX/RxJava)
  * [RxAndroid](https://github.com/ReactiveX/RxAndroid)
