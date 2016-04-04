@@ -1,4 +1,4 @@
-package com.badoo.chateau.example.ui.util;
+package com.badoo.chateau.extras;
 
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
