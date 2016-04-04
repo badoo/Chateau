@@ -3,8 +3,8 @@ package com.badoo.chateau.example.ui.conversations.list;
 import android.support.v7.widget.RecyclerView;
 
 import com.badoo.chateau.data.models.BaseConversation;
-import com.badoo.chateau.example.ui.util.MultiSelectionHelper;
 import com.badoo.chateau.example.ui.utils.TestUtils;
+import com.badoo.chateau.extras.MultiSelectionHelper;
 
 import org.junit.Before;
 import org.junit.Test;
