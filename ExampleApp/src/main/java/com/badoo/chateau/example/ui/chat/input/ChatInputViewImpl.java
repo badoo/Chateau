@@ -5,9 +5,9 @@ import android.support.annotation.NonNull;
 import com.badoo.barf.mvp.BaseView;
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.example.ui.widgets.ChatTextInputView;
+import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenter;
 import com.badoo.chateau.ui.chat.input.ChatInputView;
-import com.badoo.chateau.example.ui.util.ViewFinder;
 
 public class ChatInputViewImpl extends BaseView<ChatInputPresenter> implements ChatInputView {
 

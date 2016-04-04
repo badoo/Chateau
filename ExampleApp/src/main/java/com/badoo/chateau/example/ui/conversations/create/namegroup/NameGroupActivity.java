@@ -14,10 +14,10 @@ import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.chat.ChatActivity;
 import com.badoo.chateau.example.ui.conversations.list.ConversationListActivity;
 import com.badoo.chateau.core.model.User;
+import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenter;
 import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenterImpl;
 import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupView;
-import com.badoo.chateau.example.ui.util.ViewFinder;
 
 import java.util.ArrayList;
 import java.util.List;

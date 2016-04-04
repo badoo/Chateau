@@ -12,8 +12,8 @@ import com.badoo.chateau.data.models.BaseMessage;
 import com.badoo.chateau.data.models.payloads.ImagePayload;
 import com.badoo.chateau.data.models.payloads.TextPayload;
 import com.badoo.chateau.example.ui.util.BindableViewHolder;
-import com.badoo.chateau.example.ui.util.MultiSelectionHelper;
-import com.badoo.chateau.example.ui.util.ViewFinder;
+import com.badoo.chateau.extras.MultiSelectionHelper;
+import com.badoo.chateau.extras.ViewFinder;
 
 import java.text.DateFormat;
 import java.util.Date;

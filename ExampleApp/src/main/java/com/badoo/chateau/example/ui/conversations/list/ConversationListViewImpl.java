@@ -18,9 +18,9 @@ import android.view.View;
 import com.badoo.barf.mvp.BaseView;
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.data.models.BaseConversation;
-import com.badoo.chateau.example.ui.util.MultiSelectionHelper;
-import com.badoo.chateau.example.ui.util.ViewFinder;
 import com.badoo.chateau.example.ui.util.recycle.AboveFabItemDecoration;
+import com.badoo.chateau.extras.MultiSelectionHelper;
+import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter;
 import com.badoo.chateau.ui.conversations.list.ConversationListView;
 

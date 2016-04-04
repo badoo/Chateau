@@ -18,18 +18,18 @@ import com.badoo.chateau.example.R;
 import com.badoo.chateau.data.models.BaseUser;
 import com.badoo.chateau.example.ui.BaseActivity;
 import com.badoo.chateau.example.ui.util.BindableViewHolder;
+import com.badoo.chateau.extras.MultiSelectionHelper;
+import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter;
 import com.badoo.chateau.ui.conversations.create.selectusers.UserListView;
-import com.badoo.chateau.example.ui.util.MultiSelectionHelper;
-import com.badoo.chateau.example.ui.util.ViewFinder;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static android.view.View.OnLongClickListener;
-import static com.badoo.chateau.example.ui.util.MultiSelectionHelper.MODE_MULTIPLE_SELECT;
-import static com.badoo.chateau.example.ui.util.MultiSelectionHelper.MODE_SINGLE_SELECT;
+import static com.badoo.chateau.extras.MultiSelectionHelper.MODE_MULTIPLE_SELECT;
+import static com.badoo.chateau.extras.MultiSelectionHelper.MODE_SINGLE_SELECT;
 
 
 class UserListViewImpl extends BaseView<UserListPresenter> implements UserListView, BaseActivity.BackPressedListener, MultiSelectionHelper.OnModeChangedListener {

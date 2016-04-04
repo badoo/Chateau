@@ -9,7 +9,7 @@ import com.badoo.chateau.example.ui.BaseActivity;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.conversations.list.ConversationListActivity;
 import com.badoo.chateau.example.ui.session.register.RegisterActivity;
-import com.badoo.chateau.example.ui.util.ViewFinder;
+import com.badoo.chateau.extras.ViewFinder;
 
 /**
  * A login screen that offers login via email/password.

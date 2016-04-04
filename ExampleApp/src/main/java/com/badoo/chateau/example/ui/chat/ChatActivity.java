@@ -15,6 +15,7 @@ import com.badoo.chateau.example.ui.BaseActivity;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.chat.input.ChatInputViewImpl;
 import com.badoo.chateau.example.ui.chat.messages.MessageListViewImpl;
+import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenter;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenterImpl;
 import com.badoo.chateau.ui.chat.input.ChatInputView;
@@ -26,8 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import com.badoo.chateau.example.ui.util.ViewFinder;
 
 
 public class ChatActivity extends BaseActivity implements ChatInputPresenter.ChatInputFlowListener, MessageListPresenter.MessageListFlowListener {

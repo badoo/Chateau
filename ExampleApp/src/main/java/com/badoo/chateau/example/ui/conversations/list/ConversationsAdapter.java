@@ -8,8 +8,8 @@ import android.view.ViewGroup;
 
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.data.models.BaseConversation;
-import com.badoo.chateau.example.ui.util.MultiSelectionHelper;
 import com.badoo.chateau.core.model.Conversation;
+import com.badoo.chateau.extras.MultiSelectionHelper;
 
 import java.util.ArrayList;
 import java.util.HashSet;

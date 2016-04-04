@@ -11,7 +11,7 @@ import com.badoo.chateau.example.ui.BaseActivity;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.chat.ChatActivity;
 import com.badoo.chateau.example.ui.conversations.create.selectusers.SelectUserActivity;
-import com.badoo.chateau.example.ui.util.ViewFinder;
+import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenterImpl;
 import com.badoo.chateau.ui.conversations.list.ConversationListView;

@@ -21,11 +21,11 @@ import com.badoo.chateau.data.models.payloads.TimestampPayload;
 import com.badoo.chateau.example.ui.chat.messages.viewholders.ImageMessageViewHolder;
 import com.badoo.chateau.example.ui.chat.messages.viewholders.TextMessageViewHolder;
 import com.badoo.chateau.example.ui.chat.messages.viewholders.TimestampViewHolder;
+import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.chat.messages.MessageListPresenter;
 import com.badoo.chateau.ui.chat.messages.MessageListView;
 import com.badoo.chateau.example.ui.util.BaseMessageViewHolder;
 import com.badoo.chateau.example.ui.util.recycle.LoadingAdapter;
-import com.badoo.chateau.example.ui.util.ViewFinder;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;

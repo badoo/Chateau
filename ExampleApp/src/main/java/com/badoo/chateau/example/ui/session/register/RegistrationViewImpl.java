@@ -16,7 +16,7 @@ import android.widget.Button;
 
 import com.badoo.barf.mvp.BaseView;
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.example.ui.util.ViewFinder;
+import com.badoo.chateau.extras.ViewFinder;
 
 class RegistrationViewImpl extends BaseView<RegistrationPresenter> implements RegistrationView, View.OnClickListener {
 

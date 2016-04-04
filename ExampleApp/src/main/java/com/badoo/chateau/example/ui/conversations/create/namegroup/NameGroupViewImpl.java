@@ -7,9 +7,9 @@ import android.widget.Button;
 
 import com.badoo.barf.mvp.BaseView;
 import com.badoo.chateau.example.R;
+import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenter;
 import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupView;
-import com.badoo.chateau.example.ui.util.ViewFinder;
 
 
 public class NameGroupViewImpl extends BaseView<NameGroupPresenter> implements NameGroupView, View.OnClickListener {
