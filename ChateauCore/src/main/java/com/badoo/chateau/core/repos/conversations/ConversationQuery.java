@@ -91,10 +91,10 @@ public abstract class ConversationQuery implements Query {
         @NonNull
         private final String mName;
         @NonNull
-        private final List<User> mUsers;
+        private final List<String> mUserIds;
 
-        public CreateGroupConversationQuery(@NonNull List<User> users, @NonNull String name) {
-            mUsers = users;
+        public CreateGroupConversationQuery(@NonNull List<String> userIds, @NonNull String name) {
+            mUserIds = userIds;
             mName = name;
         }
 
@@ -104,8 +104,8 @@ public abstract class ConversationQuery implements Query {
         }
 
         @NonNull
-        public List<User> getUsers() {
-            return mUsers;
+        public List<String> getUserIds() {
+            return mUserIds;
         }
 
         @Override
@@ -116,7 +116,7 @@ public abstract class ConversationQuery implements Query {
             CreateGroupConversationQuery that = (CreateGroupConversationQuery) o;
 
             if (!mName.equals(that.mName)) return false;
-            return mUsers.equals(that.mUsers);
+            return mUserIds.equals(that.mUserIds);
 
         }
 
@@ -124,7 +124,7 @@ public abstract class ConversationQuery implements Query {
         public int hashCode() {
             int result = super.hashCode();
             result = 31 * result + mName.hashCode();
-            result = 31 * result + mUsers.hashCode();
+            result = 31 * result + mUserIds.hashCode();
             return result;
         }
 
@@ -132,7 +132,7 @@ public abstract class ConversationQuery implements Query {
         public String toString() {
             return "CreateGroupConversationQuery{" +
                 "mName='" + mName + '\'' +
-                ", mUsers=" + mUsers +
+                ", mUserIds=" + mUserIds +
                 '}';
         }
     }

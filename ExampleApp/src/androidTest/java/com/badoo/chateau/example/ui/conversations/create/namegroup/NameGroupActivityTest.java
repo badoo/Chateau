@@ -47,7 +47,7 @@ public class NameGroupActivityTest extends BaseTestCase<NameGroupActivity> {
         Injector.register(NameGroupActivity.class, new NameGroupActivity.DefaultConfiguration() {
 
             @Override
-            protected NameGroupPresenter createPresenter(List<User> users) {
+            protected NameGroupPresenter createPresenter(List<String> userIds) {
                 return mPresenter;
             }
         });

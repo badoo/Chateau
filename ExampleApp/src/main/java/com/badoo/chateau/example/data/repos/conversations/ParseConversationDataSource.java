@@ -3,15 +3,20 @@ package com.badoo.chateau.example.data.repos.conversations;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.badoo.chateau.core.model.Conversation;
+import com.badoo.chateau.core.repos.conversations.ConversationDataSource;
+import com.badoo.chateau.core.repos.conversations.ConversationQuery;
 import com.badoo.chateau.data.models.BaseConversation;
 import com.badoo.chateau.data.models.BaseUser;
 import com.badoo.chateau.example.data.util.ParseHelper;
 import com.badoo.chateau.example.data.util.ParseUtils;
+import com.badoo.chateau.example.data.util.ParseUtils.ChatSubscriptionTable;
+import com.badoo.chateau.example.data.util.ParseUtils.ChatTable;
+import com.badoo.chateau.example.data.util.ParseUtils.CreateChatFunc;
 import com.badoo.chateau.example.data.util.ParseUtils.DeleteConversationsFunc;
-import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.model.User;
-import com.badoo.chateau.core.repos.conversations.ConversationDataSource;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery;
+import com.badoo.chateau.example.data.util.ParseUtils.GetMySubscriptionsFunc;
+import com.badoo.chateau.example.data.util.ParseUtils.MarkChatReadFunc;
+import com.badoo.chateau.example.data.util.ParseUtils.UsersTable;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
@@ -24,13 +29,6 @@ import java.util.Map;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 import rx.subjects.PublishSubject;
-
-import com.badoo.chateau.example.data.util.ParseUtils.ChatSubscriptionTable;
-import com.badoo.chateau.example.data.util.ParseUtils.ChatTable;
-import com.badoo.chateau.example.data.util.ParseUtils.CreateChatFunc;
-import com.badoo.chateau.example.data.util.ParseUtils.GetMySubscriptionsFunc;
-import com.badoo.chateau.example.data.util.ParseUtils.MarkChatReadFunc;
-import com.badoo.chateau.example.data.util.ParseUtils.UsersTable;
 
 public class ParseConversationDataSource implements ConversationDataSource {
 
@@ -72,12 +70,8 @@ public class ParseConversationDataSource implements ConversationDataSource {
     @NonNull
     @Override
     public Observable<Conversation> createGroupConversation(ConversationQuery.CreateGroupConversationQuery query) {
-        final List<String> userIds = new ArrayList<>();
-        for (User user : query.getUsers()) {
-            userIds.add(((BaseUser) user).getUserId());
-        }
         final Map<String, Object> params = new HashMap<>();
-        params.put(CreateChatFunc.Fields.OTHER_USER_IDS, userIds);
+        params.put(CreateChatFunc.Fields.OTHER_USER_IDS, query.getUserIds());
         params.put(CreateChatFunc.Fields.GROUP_NAME, query.getName());
 
         return mParseHelper.<ParseObject>callFunction(CreateChatFunc.NAME, params)

@@ -22,32 +22,43 @@ import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupView;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Activity for selecting the name of a new group chat
+ */
 public class NameGroupActivity extends BaseActivity implements NameGroupPresenter.NameGroupFlowListener {
+
+    /**
+     * Entry point for NameGroupActivity
+     *
+     * @param users the list of users to include in this group
+     */
+    public static Intent create(Context context, List<BaseUser> users) {
+        final Intent intent = new Intent(context, NameGroupActivity.class);
+        ArrayList<String> userIds = new ArrayList<>();
+        for (BaseUser user : users) {
+            userIds.add(user.getUserId());
+        }
+        intent.putStringArrayListExtra(EXTRA_USER_IDS, userIds);
+        return intent;
+    }
 
     public static class DefaultConfiguration extends Injector.BaseConfiguration<NameGroupActivity> {
 
         @Override
         public void inject(@NonNull NameGroupActivity target) {
-            final List<User> users = new ArrayList<>(target.getIntent().getParcelableArrayListExtra(EXTRA_USERS));
+            final List<String> userIds = new ArrayList<>(target.getIntent().getStringArrayListExtra(EXTRA_USER_IDS));
             final NameGroupView view = new NameGroupViewImpl(ViewFinder.from(target));
-            final NameGroupPresenter presenter = createPresenter(users);
+            final NameGroupPresenter presenter = createPresenter(userIds);
             bind(view, presenter, target);
             target.setNameGroupPresenter(presenter);
         }
 
-        protected NameGroupPresenter createPresenter(final List<User> users) {
-            return new NameGroupPresenterImpl(users);
+        protected NameGroupPresenter createPresenter(final List<String> userIds) {
+            return new NameGroupPresenterImpl(userIds);
         }
     }
 
-    private static final String EXTRA_USERS = NameGroupActivity.class.getName() + ":users";
-
-    public static Intent create(Context context, List<BaseUser> users) {
-        final Intent intent = new Intent(context, NameGroupActivity.class);
-        intent.putParcelableArrayListExtra(EXTRA_USERS, new ArrayList<>(users));
-        return intent;
-    }
+    private static final String EXTRA_USER_IDS = NameGroupActivity.class.getName() + ":users";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

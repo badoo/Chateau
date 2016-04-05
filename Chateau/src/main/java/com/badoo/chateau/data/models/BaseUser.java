@@ -1,11 +1,8 @@
 package com.badoo.chateau.data.models;
 
-import android.os.Parcel;
-import android.os.Parcelable;
-
 import com.badoo.chateau.core.model.User;
 
-public class BaseUser implements User, Parcelable {
+public class BaseUser implements User {
 
     private final String mUserId;
     private final String mDisplayName;
@@ -21,22 +18,6 @@ public class BaseUser implements User, Parcelable {
 
     public String getDisplayName() {
         return mDisplayName;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.mUserId);
-        dest.writeString(this.mDisplayName);
-    }
-
-    protected BaseUser(Parcel in) {
-        this.mUserId = in.readString();
-        this.mDisplayName = in.readString();
     }
 
     @Override

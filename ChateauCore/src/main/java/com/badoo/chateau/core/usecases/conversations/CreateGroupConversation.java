@@ -5,7 +5,6 @@ import android.support.annotation.VisibleForTesting;
 
 import com.badoo.barf.usecase.RepoUseCase;
 import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.model.User;
 import com.badoo.chateau.core.repos.conversations.ConversationQuery;
 import com.badoo.chateau.core.repos.conversations.ConversationRepository;
 
@@ -26,17 +25,17 @@ public class CreateGroupConversation extends RepoUseCase<CreateGroupConversation
 
     @Override
     protected Observable<Conversation> createObservable(CreateGroupConversationParams params) {
-        return getRepo().query(new ConversationQuery.CreateGroupConversationQuery(params.mUsers, params.mName));
+        return getRepo().query(new ConversationQuery.CreateGroupConversationQuery(params.mUserIds, params.mName));
     }
 
     public static final class CreateGroupConversationParams {
         @NonNull
-        final List<User> mUsers;
+        final List<String> mUserIds;
         @NonNull
         final String mName;
 
-        public CreateGroupConversationParams(@NonNull List<User> users, @NonNull String name) {
-            mUsers = users;
+        public CreateGroupConversationParams(@NonNull List<String> userIds, @NonNull String name) {
+            mUserIds = userIds;
             mName = name;
         }
     }

@@ -127,7 +127,7 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
 
         // Execute
         final TestSubscriber<Conversation> testSubscriber = executeTarget(
-            mTarget.createGroupConversation(new CreateGroupConversationQuery(users, groupName)));
+            mTarget.createGroupConversation(new CreateGroupConversationQuery(userIds, groupName)));
 
         // Assert
         testSubscriber.assertCompleted();

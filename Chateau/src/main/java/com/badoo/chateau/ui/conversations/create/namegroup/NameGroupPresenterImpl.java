@@ -20,17 +20,17 @@ public class NameGroupPresenterImpl extends BasePresenter<NameGroupView, NameGro
     @NonNull
     private final CreateGroupConversation mGroupConversation;
     @NonNull
-    private final List<User> mUsers;
+    private final List<String> mUserIds;
 
-    public NameGroupPresenterImpl(@NonNull List<User> users) {
-        this(users, new CreateGroupConversation());
+    public NameGroupPresenterImpl(@NonNull List<String> usersIds) {
+        this(usersIds, new CreateGroupConversation());
     }
 
     @VisibleForTesting
-    NameGroupPresenterImpl(@NonNull List<User> users,
+    NameGroupPresenterImpl(@NonNull List<String> userIds,
                            @NonNull CreateGroupConversation groupConversation) {
         mGroupConversation = groupConversation;
-        mUsers = users;
+        mUserIds = userIds;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class NameGroupPresenterImpl extends BasePresenter<NameGroupView, NameGro
             return;
         }
 
-        final CreateGroupConversationParams params = new CreateGroupConversationParams(mUsers, name);
+        final CreateGroupConversationParams params = new CreateGroupConversationParams(mUserIds, name);
         final Subscription createGroupSub = mGroupConversation.execute(params)
             .map(conversation -> (BaseConversation) conversation)
             .subscribe(conversation -> {
