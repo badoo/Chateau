@@ -18,10 +18,8 @@ import com.badoo.chateau.example.ui.chat.messages.MessageListViewImpl;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenter;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenterImpl;
-import com.badoo.chateau.ui.chat.input.ChatInputView;
 import com.badoo.chateau.ui.chat.messages.MessageListPresenter;
 import com.badoo.chateau.ui.chat.messages.MessageListPresenterImpl;
-import com.badoo.chateau.ui.chat.messages.MessageListView;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,12 +36,12 @@ public class ChatActivity extends BaseActivity implements ChatInputPresenter.Cha
             final ViewFinder finder = ViewFinder.from(activity);
             final String chatId = activity.getIntent().getStringExtra(EXTRA_CHAT_ID);
 
-            ChatInputView chatInputView = new ChatInputViewImpl(finder);
+            ChatInputPresenter.ChatInputView chatInputView = new ChatInputViewImpl(finder);
             final ChatInputPresenter inputPresenter = createChatInputPresenter(chatId);
             bind(chatInputView, inputPresenter, activity);
             activity.setInputPresenter(inputPresenter);
 
-            MessageListView messageListView = createMessageListView(activity);
+            MessageListPresenter.MessageListView messageListView = createMessageListView(activity);
             final MessageListPresenter messageListPresenter = createMessageListPresenter(chatId);
             bind(messageListView, messageListPresenter, activity);
             activity.setMessageListPresenter(messageListPresenter);
@@ -53,7 +51,7 @@ public class ChatActivity extends BaseActivity implements ChatInputPresenter.Cha
             return new MessageListPresenterImpl(chatId);
         }
 
-        protected MessageListView createMessageListView(ChatActivity activity) {
+        protected MessageListPresenter.MessageListView createMessageListView(ChatActivity activity) {
             return new MessageListViewImpl(ViewFinder.from(activity), activity.getSupportActionBar());
         }
 
@@ -139,14 +137,14 @@ public class ChatActivity extends BaseActivity implements ChatInputPresenter.Cha
     }
 
     @Override
-    public void pickLocalImageForMessage() {
+    public void requestPickLocalImageForMessage() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent, REQ_PICK_IMAGE);
     }
 
     @Override
-    public void takePhotoForMessage() {
+    public void requestTakePhotoForMessage() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (intent.resolveActivity(getPackageManager()) != null) {
             final File photoFile;
@@ -174,7 +172,7 @@ public class ChatActivity extends BaseActivity implements ChatInputPresenter.Cha
     }
 
     @Override
-    public void openImage(@NonNull Uri imageUri) {
+    public void requestOpenImage(@NonNull Uri imageUri) {
         startActivity(FullScreenImageActivity.create(ChatActivity.this, imageUri));
     }
 

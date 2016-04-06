@@ -17,7 +17,7 @@ import rx.Subscription;
 
 import static com.badoo.barf.usecase.UseCase.NoParams;
 
-public class UserListPresenterImpl extends BasePresenter<UserListView, UserListPresenter.UserListFlowListener> implements UserListPresenter {
+public class UserListPresenterImpl extends BasePresenter<UserListPresenter.UserListView, UserListPresenter.UserListFlowListener> implements UserListPresenter {
 
     private static final String TAG = UserListPresenterImpl.class.getSimpleName();
 
@@ -56,13 +56,13 @@ public class UserListPresenterImpl extends BasePresenter<UserListView, UserListP
                 .map(conversation -> (BaseConversation) conversation)
                 .subscribe(
                     conversation -> {
-                        getFlowListener().openChat(conversation.getId());
+                        getFlowListener().requestOpenChat(conversation.getId());
                     },
                     this::onError);
             trackSubscription(createConversationSub);
         }
         else {
-            getFlowListener().createGroupChat(users);
+            getFlowListener().requestCreateGroupChat(users);
         }
     }
 

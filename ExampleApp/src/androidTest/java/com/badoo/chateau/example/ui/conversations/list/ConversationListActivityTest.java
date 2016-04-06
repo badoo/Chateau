@@ -52,7 +52,7 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
             }
         });
     }
-
+FIX!!!
     @Test
     public void startNewConversation() {
         // When

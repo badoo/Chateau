@@ -16,7 +16,7 @@ import com.badoo.chateau.core.usecases.messages.SendMessage;
 
 import static com.badoo.chateau.core.usecases.messages.SendMessage.SendMessageParams;
 
-public class ChatInputPresenterImpl extends BasePresenter<ChatInputView, ChatInputPresenter.ChatInputFlowListener> implements ChatInputPresenter {
+public class ChatInputPresenterImpl extends BasePresenter<ChatInputPresenter.ChatInputView, ChatInputPresenter.ChatInputFlowListener> implements ChatInputPresenter {
 
     @NonNull
     private final SendMessage mSendMessage;
@@ -47,12 +47,12 @@ public class ChatInputPresenterImpl extends BasePresenter<ChatInputView, ChatInp
 
     @Override
     public void onPickImage() {
-        getFlowListener().pickLocalImageForMessage();
+        getFlowListener().requestPickLocalImageForMessage();
     }
 
     @Override
     public void onTakePhoto() {
-        getFlowListener().takePhotoForMessage();
+        getFlowListener().requestTakePhotoForMessage();
     }
 
     @Override

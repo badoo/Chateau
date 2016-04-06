@@ -6,8 +6,6 @@ import com.badoo.chateau.example.ui.conversations.list.CreateConversationPresent
 
 /**
  * Implementation of CreateConversationPresenter which delegates the operation to the flow listener
- *
- * Created by Erik Andre on 06/04/16.
  */
 public class CreateConversationPresenterImpl extends BasePresenter<CreateConversationView, CreateConversationFlowListener> implements CreateConversationPresenter {
 

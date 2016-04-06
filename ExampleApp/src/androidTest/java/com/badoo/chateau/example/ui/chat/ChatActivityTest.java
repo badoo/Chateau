@@ -14,7 +14,6 @@ import com.badoo.chateau.example.R;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenter;
 import com.badoo.chateau.ui.chat.messages.MessageListPresenter;
-import com.badoo.chateau.ui.chat.messages.MessageListView;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +40,7 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
     private static final String MESSAGE = "message";
     private MessageListPresenter mListPresenter;
     private ChatInputPresenter mInputPresenter;
-    private MessageListView mMessageListView;
+    private MessageListPresenter.MessageListView mMessageListView;
 
     @Override
     protected Class<ChatActivity> getActivityClass() {
@@ -70,7 +69,7 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
             }
 
             @Override
-            protected MessageListView createMessageListView(ChatActivity activity) {
+            protected MessageListPresenter.MessageListView createMessageListView(ChatActivity activity) {
                 mMessageListView =  super.createMessageListView(activity);
                 return mMessageListView;
             }

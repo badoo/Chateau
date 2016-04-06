@@ -22,14 +22,13 @@ import com.badoo.chateau.example.ui.chat.messages.viewholders.TextMessageViewHol
 import com.badoo.chateau.example.ui.chat.messages.viewholders.TimestampViewHolder;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.chat.messages.MessageListPresenter;
-import com.badoo.chateau.ui.chat.messages.MessageListView;
 import com.badoo.chateau.example.ui.util.BaseMessageViewHolder;
 import com.badoo.chateau.example.ui.util.recycle.LoadingAdapter;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class MessageListViewImpl extends BaseView<MessageListPresenter> implements MessageListView {
+public class MessageListViewImpl extends BaseView<MessageListPresenter> implements MessageListPresenter.MessageListView {
 
     public static final long HIDE_IS_TYPING_INDICATOR = TimeUnit.SECONDS.toMillis(5);
     private final RecyclerView mChatList;

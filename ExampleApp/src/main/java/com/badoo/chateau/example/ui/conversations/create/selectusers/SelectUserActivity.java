@@ -17,7 +17,6 @@ import com.badoo.chateau.example.ui.conversations.create.namegroup.NameGroupActi
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter;
 import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenterImpl;
-import com.badoo.chateau.ui.conversations.create.selectusers.UserListView;
 
 import java.util.List;
 
@@ -27,13 +26,13 @@ public class SelectUserActivity extends BaseActivity implements UserListPresente
 
         @Override
         public void inject(SelectUserActivity target) {
-            final UserListView view = createView(target);
+            final UserListPresenter.UserListView view = createView(target);
             final UserListPresenter presenter = createPresenter();
             bind(view, presenter, target);
             target.setUserListPresenter(presenter);
         }
 
-        protected UserListView createView(SelectUserActivity activity) {
+        protected UserListPresenter.UserListView createView(SelectUserActivity activity) {
             final UserListViewImpl view = new UserListViewImpl(ViewFinder.from(activity));
             activity.registerBackPressedListener(view);
             return view;
@@ -72,14 +71,14 @@ public class SelectUserActivity extends BaseActivity implements UserListPresente
     }
 
     @Override
-    public void openChat(@NonNull String chatId) {
+    public void requestOpenChat(@NonNull String chatId) {
         final Intent intent = ChatActivity.create(this, chatId, "");
         finish();
         startActivity(intent);
     }
 
     @Override
-    public void createGroupChat(@NonNull List<BaseUser> users) {
+    public void requestCreateGroupChat(@NonNull List<BaseUser> users) {
         final Intent intent = NameGroupActivity.create(this, users);
         startActivity(intent);
     }

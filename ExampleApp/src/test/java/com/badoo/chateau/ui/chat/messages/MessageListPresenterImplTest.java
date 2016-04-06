@@ -41,7 +41,7 @@ public class MessageListPresenterImplTest extends BaseRxTestCase {
     @Mock private MarkConversationRead mMarkConversationRead;
     @Mock private GetConversation mGetConversation;
     @Mock private SubscribeToUsersTyping mSubscribeToUsersTyping;
-    @Mock private MessageListView mView;
+    @Mock private MessageListPresenter.MessageListView mView;
 
     @Before
     public void setup() {

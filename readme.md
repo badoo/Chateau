@@ -182,14 +182,14 @@ The main part of the UI integration work is to implement the Views (MVP Views th
 
 For basic functionality (to be able to list the current conversations and read and send messages in a conversation) you will need to implement the following views.
 
-* `com.badoo.chateau.ui.chat.input.ChatInputView`
-* `com.badoo.chateau.ui.chat.messages.MessageListView`
+* `com.badoo.chateau.ui.chat.input.ChatInputPresenter.ChatInputView`
+* `com.badoo.chateau.ui.chat.messages.MessageListPresenter.MessageListView`
 * `com.badoo.chateau.ui.conversations.list.ConversationListPresenter.ConversationListView`
 
 Optionally you can also implement the following views if you want to be able to pick an user to start a conversation with.
 
-* `com.badoo.chateau.ui.conversations.create.selectusers.UserListView`
-* `com.badoo.chateau.ui.conversations.create.namegroup.NameGroupView`
+* `com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter.UserListView`
+* `com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenter.NameGroupView`
 
 After doing this you will need to make sure that both the presenters and views are created in your Activity or Fragment.
 The following simple example shows how this could be done in the activity's `onCreate()` method.

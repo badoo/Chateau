@@ -9,10 +9,9 @@ import com.badoo.barf.mvp.BaseView;
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenter;
-import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupView;
 
 
-public class NameGroupViewImpl extends BaseView<NameGroupPresenter> implements NameGroupView, View.OnClickListener {
+public class NameGroupViewImpl extends BaseView<NameGroupPresenter> implements NameGroupPresenter.NameGroupView, View.OnClickListener {
 
     private final TextInputLayout mGroupName;
 

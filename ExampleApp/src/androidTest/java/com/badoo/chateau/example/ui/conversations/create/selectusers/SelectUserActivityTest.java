@@ -7,7 +7,6 @@ import com.badoo.chateau.example.R;
 import com.badoo.chateau.data.models.BaseUser;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter;
-import com.badoo.chateau.ui.conversations.create.selectusers.UserListView;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,7 +26,7 @@ import static org.mockito.Mockito.verify;
 public class SelectUserActivityTest extends BaseTestCase<SelectUserActivity> {
 
     private UserListPresenter mPresenter;
-    private UserListView mView;
+    private UserListPresenter.UserListView mView;
 
     @Override
     protected Class<SelectUserActivity> getActivityClass() {
@@ -40,7 +39,7 @@ public class SelectUserActivityTest extends BaseTestCase<SelectUserActivity> {
         Injector.register(SelectUserActivity.class, new SelectUserActivity.DefaultConfiguration() {
 
             @Override
-            protected UserListView createView(SelectUserActivity activity) {
+            protected UserListPresenter.UserListView createView(SelectUserActivity activity) {
                 mView = super.createView(activity);
                 return mView;
             }

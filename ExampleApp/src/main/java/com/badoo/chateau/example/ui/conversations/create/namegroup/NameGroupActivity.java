@@ -13,11 +13,9 @@ import com.badoo.chateau.example.ui.BaseActivity;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.chat.ChatActivity;
 import com.badoo.chateau.example.ui.conversations.list.ConversationListActivity;
-import com.badoo.chateau.core.model.User;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenter;
 import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenterImpl;
-import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +45,7 @@ public class NameGroupActivity extends BaseActivity implements NameGroupPresente
         @Override
         public void inject(@NonNull NameGroupActivity target) {
             final List<String> userIds = new ArrayList<>(target.getIntent().getStringArrayListExtra(EXTRA_USER_IDS));
-            final NameGroupView view = new NameGroupViewImpl(ViewFinder.from(target));
+            final NameGroupPresenter.NameGroupView view = new NameGroupViewImpl(ViewFinder.from(target));
             final NameGroupPresenter presenter = createPresenter(userIds);
             bind(view, presenter, target);
             target.setNameGroupPresenter(presenter);
@@ -89,7 +87,7 @@ public class NameGroupActivity extends BaseActivity implements NameGroupPresente
     }
 
     @Override
-    public void openChat(@NonNull String chatId) {
+    public void requestOpenChat(@NonNull String chatId) {
         final Intent startConversations = new Intent(this, ConversationListActivity.class);
         startConversations.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         final Intent startChat = ChatActivity.create(this, chatId, "");

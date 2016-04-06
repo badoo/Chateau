@@ -62,7 +62,7 @@ public interface ConversationListPresenter extends Presenter<ConversationListPre
         /**
          * Called when a conversation is selected to be opened.
          */
-        void openConversation(@NonNull BaseConversation conversation);
+        void requestOpenConversation(@NonNull BaseConversation conversation);
 
     }
 }

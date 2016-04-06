@@ -22,7 +22,7 @@ import rx.Subscription;
 
 import static com.badoo.chateau.core.usecases.messages.GetChatMessages.GetChatMessagesParams;
 
-public class MessageListPresenterImpl extends BasePresenter<MessageListView, MessageListPresenter.MessageListFlowListener> implements MessageListPresenter {
+public class MessageListPresenterImpl extends BasePresenter<MessageListPresenter.MessageListView, MessageListPresenter.MessageListFlowListener> implements MessageListPresenter {
 
     private static final String TAG = MessageListPresenterImpl.class.getSimpleName();
 
@@ -150,7 +150,7 @@ public class MessageListPresenterImpl extends BasePresenter<MessageListView, Mes
 
     @Override
     public void onImageClicked(@NonNull Uri uri) {
-        getFlowListener().openImage(uri);
+        getFlowListener().requestOpenImage(uri);
     }
 
 }

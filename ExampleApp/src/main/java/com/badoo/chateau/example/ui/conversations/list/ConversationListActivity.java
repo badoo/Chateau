@@ -67,7 +67,7 @@ public class ConversationListActivity extends BaseActivity implements Conversati
     }
 
     @Override
-    public void openConversation(@NonNull BaseConversation conversation) {
+    public void requestOpenConversation(@NonNull BaseConversation conversation) {
         final Intent intent = ChatActivity.create(this, conversation.getId(), conversation.getName());
         startActivity(intent);
     }

@@ -6,7 +6,6 @@ import android.text.TextUtils;
 
 import com.badoo.barf.mvp.BasePresenter;
 import com.badoo.chateau.data.models.BaseConversation;
-import com.badoo.chateau.core.model.User;
 import com.badoo.chateau.core.usecases.conversations.CreateGroupConversation;
 
 import java.util.List;
@@ -15,7 +14,7 @@ import rx.Subscription;
 
 import static com.badoo.chateau.core.usecases.conversations.CreateGroupConversation.CreateGroupConversationParams;
 
-public class NameGroupPresenterImpl extends BasePresenter<NameGroupView, NameGroupPresenter.NameGroupFlowListener> implements NameGroupPresenter {
+public class NameGroupPresenterImpl extends BasePresenter<NameGroupPresenter.NameGroupView, NameGroupPresenter.NameGroupFlowListener> implements NameGroupPresenter {
 
     @NonNull
     private final CreateGroupConversation mGroupConversation;
@@ -44,7 +43,7 @@ public class NameGroupPresenterImpl extends BasePresenter<NameGroupView, NameGro
         final Subscription createGroupSub = mGroupConversation.execute(params)
             .map(conversation -> (BaseConversation) conversation)
             .subscribe(conversation -> {
-                    getFlowListener().openChat(conversation.getId());
+                    getFlowListener().requestOpenChat(conversation.getId());
                 },
                 throwable -> {
                     throw new IllegalStateException("Can't create chat????", throwable);

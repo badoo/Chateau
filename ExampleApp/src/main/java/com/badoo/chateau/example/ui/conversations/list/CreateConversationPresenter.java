@@ -14,9 +14,6 @@ public interface CreateConversationPresenter extends Presenter<CreateConversatio
      */
     void onCreateNewConversationClicked();
 
-    /**
-     * Created by Erik Andre on 06/04/16.
-     */
     interface CreateConversationFlowListener extends Presenter.FlowListener {
 
         /**

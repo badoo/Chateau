@@ -57,7 +57,7 @@ public class ConversationListPresenterImpl extends BasePresenter<ConversationLis
 
     @Override
     public void onConversationClicked(@NonNull BaseConversation conversation) {
-        getFlowListener().openConversation(conversation);
+        getFlowListener().requestOpenConversation(conversation);
     }
 
     @Override

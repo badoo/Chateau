@@ -20,7 +20,6 @@ import com.badoo.chateau.example.ui.util.BindableViewHolder;
 import com.badoo.chateau.extras.MultiSelectionHelper;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter;
-import com.badoo.chateau.ui.conversations.create.selectusers.UserListView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +30,7 @@ import static com.badoo.chateau.extras.MultiSelectionHelper.MODE_MULTIPLE_SELECT
 import static com.badoo.chateau.extras.MultiSelectionHelper.MODE_SINGLE_SELECT;
 
 
-class UserListViewImpl extends BaseView<UserListPresenter> implements UserListView, BaseActivity.BackPressedListener, MultiSelectionHelper.OnModeChangedListener {
+class UserListViewImpl extends BaseView<UserListPresenter> implements UserListPresenter.UserListView, BaseActivity.BackPressedListener, MultiSelectionHelper.OnModeChangedListener {
 
     private final List<BaseUser> mUsers = new ArrayList<>();
 
