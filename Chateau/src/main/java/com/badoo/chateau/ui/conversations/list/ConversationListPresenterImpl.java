@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.badoo.barf.usecase.UseCase;
 import com.badoo.barf.mvp.BasePresenter;
-import com.badoo.chateau.R;
 import com.badoo.chateau.data.models.BaseConversation;
 import com.badoo.chateau.core.usecases.conversations.DeleteConversations;
 import com.badoo.chateau.core.usecases.conversations.GetMyConversations;
@@ -53,7 +52,7 @@ public class ConversationListPresenterImpl extends BasePresenter<ConversationLis
 
     private void onError(Throwable throwable) {
         Log.e(TAG, "Failed to load data", throwable);
-        getView().showError(R.string.error_generic);
+        getView().showGenericError();
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.badoo.chateau.example.ui.conversations.list;
 
 import android.content.res.Resources;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.ContentLoadingProgressBar;
@@ -66,8 +65,8 @@ class ConversationListViewImpl extends BaseView<ConversationListPresenter> imple
         mAdapter.removeConversations(conversations);
     }
 
-    public void showError(@StringRes int messageResourceId) {
-        Snackbar.make(mConversationList, messageResourceId, Snackbar.LENGTH_INDEFINITE).show();
+    public void showGenericError() {
+        Snackbar.make(mConversationList, R.string.error_generic, Snackbar.LENGTH_INDEFINITE).show();
     }
 
     @Override

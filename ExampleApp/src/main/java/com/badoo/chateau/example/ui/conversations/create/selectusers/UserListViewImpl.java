@@ -1,7 +1,6 @@
 package com.badoo.chateau.example.ui.conversations.create.selectusers;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.ContentLoadingProgressBar;
@@ -68,8 +67,8 @@ class UserListViewImpl extends BaseView<UserListPresenter> implements UserListVi
     }
 
     @Override
-    public void showError(@StringRes int errorMessage) {
-        Snackbar.make(mUsersList, errorMessage, Snackbar.LENGTH_INDEFINITE).show();
+    public void showGenericError() {
+        Snackbar.make(mUsersList, R.string.error_generic, Snackbar.LENGTH_INDEFINITE).show();
     }
 
     public void onGroupActionClick(View v) {

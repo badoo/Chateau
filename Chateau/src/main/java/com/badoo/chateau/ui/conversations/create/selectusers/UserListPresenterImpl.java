@@ -5,7 +5,6 @@ import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.badoo.barf.mvp.BasePresenter;
-import com.badoo.chateau.R;
 import com.badoo.chateau.data.models.BaseConversation;
 import com.badoo.chateau.data.models.BaseUser;
 import com.badoo.chateau.core.usecases.conversations.CreateConversation;
@@ -69,7 +68,7 @@ public class UserListPresenterImpl extends BasePresenter<UserListView, UserListP
 
     private void onError(Throwable throwable) {
         Log.e(TAG, "Failed to load data", throwable);
-        getView().showError(R.string.error_generic);
+        getView().showGenericError();
     }
 
 }

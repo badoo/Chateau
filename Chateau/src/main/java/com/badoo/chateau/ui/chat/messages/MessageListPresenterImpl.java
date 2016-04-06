@@ -17,8 +17,6 @@ import com.badoo.chateau.core.usecases.messages.SubscribeToUpdatedMessages;
 import com.badoo.chateau.data.models.BaseConversation;
 import com.badoo.chateau.data.models.BaseMessage;
 
-import com.badoo.chateau.R;
-
 import rx.Observable;
 import rx.Subscription;
 
@@ -107,7 +105,7 @@ public class MessageListPresenterImpl extends BasePresenter<MessageListView, Mes
 
     private void onError(Throwable throwable) {
         Log.e(TAG, "Failed to load data", throwable);
-        getView().showError(R.string.error_generic);
+        getView().showGenericError();
     }
 
     @Override

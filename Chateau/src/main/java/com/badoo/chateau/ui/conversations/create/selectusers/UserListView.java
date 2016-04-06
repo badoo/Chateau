@@ -12,6 +12,6 @@ public interface UserListView extends View<UserListPresenter> {
 
     void showUsers(@NonNull List<BaseUser> users);
 
-    void showError(@StringRes int errorMessage);
+    void showGenericError();
 
 }

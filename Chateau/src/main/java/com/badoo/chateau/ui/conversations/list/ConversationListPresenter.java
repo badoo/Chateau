@@ -43,7 +43,7 @@ public interface ConversationListPresenter extends Presenter<ConversationListPre
         /**
          * Show an error message.
          */
-        void showError(@StringRes int messageResourceId);
+        void showGenericError();
 
         /**
          * Show the loading indicator.

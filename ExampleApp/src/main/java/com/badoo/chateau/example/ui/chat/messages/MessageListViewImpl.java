@@ -4,7 +4,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.LinearLayoutManager;
@@ -89,8 +88,8 @@ public class MessageListViewImpl extends BaseView<MessageListPresenter> implemen
     }
 
     @Override
-    public void showError(@StringRes int errorMessage) {
-        Snackbar.make(mChatList, errorMessage, Snackbar.LENGTH_INDEFINITE).show();
+    public void showGenericError() {
+        Snackbar.make(mChatList, R.string.error_generic, Snackbar.LENGTH_INDEFINITE).show();
     }
 
     private void notifyIfReachingTopOfList() {

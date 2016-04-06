@@ -45,7 +45,7 @@ public interface MessageListView extends View<MessageListPresenter> {
     /**
      * Show an error message to the user.
      */
-    void showError(@StringRes int errorMessage);
+    void showGenericError();
 
 
 }
