@@ -22,11 +22,10 @@ import com.badoo.chateau.example.ui.util.recycle.AboveFabItemDecoration;
 import com.badoo.chateau.extras.MultiSelectionHelper;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter;
-import com.badoo.chateau.ui.conversations.list.ConversationListView;
 
 import java.util.List;
 
-class ConversationListViewImpl extends BaseView<ConversationListPresenter> implements ConversationListView, View.OnClickListener, MultiSelectionHelper.OnModeChangedListener, MultiSelectionHelper.OnSelectionChangedListener, ConversationViewHolder.OnConversationClickedListener {
+class ConversationListViewImpl extends BaseView<ConversationListPresenter> implements ConversationListPresenter.ConversationListView, MultiSelectionHelper.OnModeChangedListener, MultiSelectionHelper.OnSelectionChangedListener, ConversationViewHolder.OnConversationClickedListener {
 
     private final ContentLoadingProgressBar mProgress;
     private final MultiSelectionHelper mSelectionHelper;
@@ -46,9 +45,7 @@ class ConversationListViewImpl extends BaseView<ConversationListPresenter> imple
         mConversationList = viewFinder.findViewById(R.id.conversations_list);
         mConversationList.setLayoutManager(new LinearLayoutManager(mConversationList.getContext()));
         mConversationList.setAdapter(mAdapter);
-
         mStartNewChat = viewFinder.findViewById(R.id.conversations_start_new_chat_button);
-        mStartNewChat.setOnClickListener(this);
         mConversationList.addItemDecoration(new AboveFabItemDecoration(mStartNewChat));
     }
 
@@ -111,13 +108,6 @@ class ConversationListViewImpl extends BaseView<ConversationListPresenter> imple
     @NonNull
     private Resources getResources() {
         return mToolbar.getResources();
-    }
-
-    @Override
-    public void onClick(View v) {
-        if (v.getId() == R.id.conversations_start_new_chat_button) {
-            getPresenter().onCreateNewConversationClicked();
-        }
     }
 
     @Override

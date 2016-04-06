@@ -184,7 +184,7 @@ For basic functionality (to be able to list the current conversations and read a
 
 * `com.badoo.chateau.ui.chat.input.ChatInputView`
 * `com.badoo.chateau.ui.chat.messages.MessageListView`
-* `com.badoo.chateau.ui.conversations.list.ConversationListView`
+* `com.badoo.chateau.ui.conversations.list.ConversationListPresenter.ConversationListView`
 
 Optionally you can also implement the following views if you want to be able to pick an user to start a conversation with.
 

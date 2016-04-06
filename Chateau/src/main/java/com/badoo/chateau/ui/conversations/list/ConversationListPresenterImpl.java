@@ -19,7 +19,7 @@ import java.util.List;
 import rx.Observable;
 import rx.Subscription;
 
-public class ConversationListPresenterImpl extends BasePresenter<ConversationListView, ConversationListPresenter.ConversationListFlowListener> implements ConversationListPresenter {
+public class ConversationListPresenterImpl extends BasePresenter<ConversationListPresenter.ConversationListView, ConversationListPresenter.ConversationListFlowListener> implements ConversationListPresenter {
 
     private static final String TAG = ConversationListPresenterImpl.class.getSimpleName();
     @NonNull
@@ -59,11 +59,6 @@ public class ConversationListPresenterImpl extends BasePresenter<ConversationLis
     @Override
     public void onConversationClicked(@NonNull BaseConversation conversation) {
         getFlowListener().openConversation(conversation);
-    }
-
-    @Override
-    public void onCreateNewConversationClicked() {
-        getFlowListener().createNewConversation();
     }
 
     @Override

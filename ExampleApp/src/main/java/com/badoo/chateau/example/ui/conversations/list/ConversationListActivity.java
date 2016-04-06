@@ -11,29 +11,45 @@ import com.badoo.chateau.example.ui.BaseActivity;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.chat.ChatActivity;
 import com.badoo.chateau.example.ui.conversations.create.selectusers.SelectUserActivity;
+import com.badoo.chateau.example.ui.conversations.list.CreateConversationPresenter.CreateConversationFlowListener;
+import com.badoo.chateau.example.ui.conversations.list.CreateConversationPresenter.CreateConversationView;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter;
+import com.badoo.chateau.ui.conversations.list.ConversationListPresenter.ConversationListFlowListener;
+import com.badoo.chateau.ui.conversations.list.ConversationListPresenter.ConversationListView;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenterImpl;
-import com.badoo.chateau.ui.conversations.list.ConversationListView;
 
-public class ConversationListActivity extends BaseActivity implements ConversationListPresenter.ConversationListFlowListener {
+public class ConversationListActivity extends BaseActivity implements ConversationListFlowListener, CreateConversationFlowListener {
 
     public static class DefaultConfiguration extends Injector.BaseConfiguration<ConversationListActivity> {
 
         @Override
         public void inject(ConversationListActivity target) {
-            final ConversationListView view = createView(target);
-            final ConversationListPresenter presenter = createPresenter();
+            // Conversation list
+            final ConversationListView view = createConversationListView(target);
+            final ConversationListPresenter presenter = createConversationListPresenter();
             bind(view, presenter, target);
             target.setConversationListPresenter(presenter);
+            // Creating new conversation
+            final CreateConversationView createConversationView = createCreateConversationView(target);
+            final CreateConversationPresenter createConversationPresenter = createCreateConversationPresenter();
+            bind(createConversationView, createConversationPresenter, target);
         }
 
-        protected ConversationListView createView(ConversationListActivity activity) {
+        protected ConversationListView createConversationListView(ConversationListActivity activity) {
             return new ConversationListViewImpl(ViewFinder.from(activity), activity.getToolbar());
         }
 
-        protected ConversationListPresenter createPresenter() {
+        protected ConversationListPresenter createConversationListPresenter() {
             return new ConversationListPresenterImpl();
+        }
+
+        protected CreateConversationView createCreateConversationView(ConversationListActivity activity) {
+            return new CreateConversationViewImpl(ViewFinder.from(activity));
+        }
+
+        protected CreateConversationPresenter createCreateConversationPresenter() {
+            return new CreateConversationPresenterImpl();
         }
     }
 
@@ -57,7 +73,7 @@ public class ConversationListActivity extends BaseActivity implements Conversati
     }
 
     @Override
-    public void createNewConversation() {
+    public void requestCreateNewConversation() {
         final Intent intent = new Intent(this, SelectUserActivity.class);
         startActivity(intent);
     }

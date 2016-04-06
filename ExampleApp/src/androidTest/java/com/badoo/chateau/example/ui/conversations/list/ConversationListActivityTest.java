@@ -7,7 +7,6 @@ import com.badoo.chateau.example.R;
 import com.badoo.chateau.data.models.BaseConversation;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter;
-import com.badoo.chateau.ui.conversations.list.ConversationListView;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,7 +28,7 @@ import static org.mockito.Mockito.verify;
 public class ConversationListActivityTest extends BaseTestCase<ConversationListActivity> {
 
     private ConversationListPresenter mPresenter;
-    private ConversationListView mView;
+    private ConversationListPresenter.ConversationListView mView;
 
     @Override
     protected Class<ConversationListActivity> getActivityClass() {
@@ -42,13 +41,13 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
         Injector.register(ConversationListActivity.class, new ConversationListActivity.DefaultConfiguration() {
 
             @Override
-            protected ConversationListView createView(ConversationListActivity activity) {
-                mView = super.createView(activity);
+            protected ConversationListPresenter.ConversationListView createConversationListView(ConversationListActivity activity) {
+                mView = super.createConversationListView(activity);
                 return mView;
             }
 
             @Override
-            protected ConversationListPresenter createPresenter() {
+            protected ConversationListPresenter createConversationListPresenter() {
                 return mPresenter;
             }
         });
