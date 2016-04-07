@@ -25,9 +25,9 @@ If you're reading this as an iOS developer, some of our engineers already implem
 
 ### Clean Architecture
 
-The architecture of the app is based upon the [principles](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html) put forward by Robert Martin and adapting this for us with Android.
+The architecture of the app is based upon the concept of [Clean Architecture](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html) put forward by Robert Martin, which we adapted to fit our needs. In a Clean Architecture, the code is divided into layers where each layer must only have dependencies to lower layers (or as shown in the diagram below, dependencies going towards the right). This in combination with the Model-View-Presenter (MVP) pattern has allowed us to divide the code into components which can be individually tested by mocking dependencies to lower layers.
 
-The library is divided into 3 layers:
+Chateau is divided into 3 layers:
 
 <div align="center">
     <img src="./doc/cleanarc.png" />
@@ -35,15 +35,15 @@ The library is divided into 3 layers:
 
 ##### Presentation Layer
 
-This layer contains all UI related logic, it knows nothing of the data layer and is only able to perform actions in the form of usecases. The presentation layer should be interchangable without affecting the other two layers. All results from use cases are observed on the main thread. 
+This layer contains all UI related logic (Views and Presenters), it knows nothing of the data layer and is only able to perform actions by invoking usecases that resides in the Domain layer. As with the other layers, the presentation layer is interchangable without affecting the other two layers. All results from use cases are observed (using RxJava) on the main thread to ensure threading consistency and make it easy to update the UI.
 
 ##### Domain Layer
 
-Contains the application's use cases which encapsulate application specific business rules, for example SignIn would be an example of use case.  Use cases are able to query the data layer, but should know nothing of the implementation of that layer. All subscriptions to the data layer are made on the computation thread.
+Contains the application's use cases which encapsulate application specific business rules, for example SignIn or SendChatMessage would be an example of use case.  Use cases are able to query the data layer (Repositories), but should know nothing of the implementation of that layer. All subscriptions to the data layer are made on the computation thread.
 
 ##### Data Layer
 
-Finally the data layer contains interaction with the network, databases or other locations where data can be retrieved or stored. Changing the underlying implementation should not affect the other two layers.
+Finally the data layer contains interaction with the network, databases or other locations where data can be retrieved or stored. Changing the underlying implementation should not affect the other two layers. The data layer can also consist of several different sources chained together (i.e memory cache, disk cache and finally network request for loading conversations).
 
 ##### Further reading
 
@@ -58,7 +58,6 @@ As the above only gives a rough overview of clean architecture I'd strongly reco
 The data layers consists of repositories and data sources.  Generally repositories are used to map queries to data sources.  The aid with this, the [DelegatingRepository.java](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/data/repo/DelegatingRepository.java) has been created, which allows query handlers to be registered for each query which in turn map them to a data source.  It is also possible to annotate a data source using the [Handles.java](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/data/repo/annotations/Handles.java) annoatation.  Currently this is progressed using reflection, but there is a future task to before this via an annoation processor.
 
 Examples of the configuration of Repositories and Datasources can be found in [ChatExampleApp.java](https://github.com/badoo/Chateau/tree/master/ExampleApp/src/main/java/com/badoo/chateau/example/ChatExampleApp.java).
-
 
 ### How we MVP
 
