@@ -155,8 +155,8 @@ Now that you got the server up and running it's time to point the app towards th
 
 In order to get your basic chat functionality up and running there are two main components that needs to be added.
 
- * Backend integration (in the form of data sources)
- * UI (for displaying different types of messages as well as for handling composing the messages)
+ * Backend integration (in the form of data sources).
+ * UI (for displaying different types of messages as well as for handling composing the messages).
 
 ### Backend integration
 
