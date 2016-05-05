@@ -10,8 +10,8 @@ android {
         applicationId "com.badoo.chateau.example"
         minSdkVersion 15
         targetSdkVersion 21
-        versionCode 2
-        versionName "1.1"
+        versionCode 3
+        versionName "1.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "PARSE_APP_ID", '"5mvTdDFlvmCdsFOmwgv1YHmHXGL8lXjgqrshi213"'
         buildConfigField "String", "PARSE_CLIENT_KEY", '"GlSPvhgK70usYhOZeKiNEISI0VQYJaOCpHoNxcLU"'
@@ -43,7 +43,7 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile 'com.parse:parse-android:1.13.0'
 
-    compile 'net.hockeyapp.android:HockeySDK:3.7.0'
+    compile 'net.hockeyapp.android:HockeySDK:3.7.1'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'
@@ -60,4 +60,5 @@ dependencies {
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2'
 
+    compile 'com.google.android.gms:play-services-appindexing:8.1.0'
 }

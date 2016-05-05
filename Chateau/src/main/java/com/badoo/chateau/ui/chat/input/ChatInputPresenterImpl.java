@@ -2,36 +2,34 @@ package com.badoo.chateau.ui.chat.input;
 
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
-import com.badoo.barf.mvp.BasePresenter;
-import com.badoo.chateau.data.models.BaseMessage;
-import com.badoo.chateau.data.models.payloads.ImagePayload;
-import com.badoo.chateau.data.models.payloads.TextPayload;
-import com.badoo.chateau.core.model.Message;
+import com.badoo.barf.mvp.BaseRxPresenter;
+import com.badoo.barf.rx.ScheduleOn;
 import com.badoo.chateau.core.usecases.istyping.SendUserIsTyping;
-import com.badoo.chateau.core.usecases.messages.ChatParams;
 import com.badoo.chateau.core.usecases.messages.SendMessage;
 
-import static com.badoo.chateau.core.usecases.messages.SendMessage.SendMessageParams;
+public class ChatInputPresenterImpl extends BaseRxPresenter
+    implements ChatInputPresenter {
 
-public class ChatInputPresenterImpl extends BasePresenter<ChatInputPresenter.ChatInputView, ChatInputPresenter.ChatInputFlowListener> implements ChatInputPresenter {
-
+    @NonNull
+    private final ChatInputView mView;
+    @NonNull
+    private final ChatInputFlowListener mFlowListener;
     @NonNull
     private final SendMessage mSendMessage;
     @NonNull
     private final SendUserIsTyping mSendUserIsTyping;
     private final String mChatId;
 
-    public ChatInputPresenterImpl(@NonNull String chatId) {
-        this(chatId, new SendMessage(), new SendUserIsTyping());
-    }
-
-    @VisibleForTesting
     public ChatInputPresenterImpl(@NonNull String chatId,
-                                  @NonNull SendMessage sendMessage, @NonNull SendUserIsTyping sendUserIsTyping) {
+                                  @NonNull ChatInputView view,
+                                  @NonNull ChatInputFlowListener flowListener,
+                                  @NonNull SendMessage sendMessage,
+                                  @NonNull SendUserIsTyping sendUserIsTyping) {
         mChatId = chatId;
+        mView = view;
+        mFlowListener = flowListener;
         mSendMessage = sendMessage;
         mSendUserIsTyping = sendUserIsTyping;
     }
@@ -39,31 +37,32 @@ public class ChatInputPresenterImpl extends BasePresenter<ChatInputPresenter.Cha
     @Override
     public void onSendMessage(@NonNull String message) {
         if (!TextUtils.isEmpty(message)) {
-            final Message msg = BaseMessage.createOutgoingMessage(new TextPayload(message));
-            trackSubscription(mSendMessage.execute(new SendMessageParams(mChatId, msg)).subscribe());
+            trackSubscription(mSendMessage.execute(mChatId, message, null)
+                .compose(ScheduleOn.io()).subscribe());
         }
-        getView().clearText();
+        mView.clearText();
     }
 
     @Override
     public void onPickImage() {
-        getFlowListener().requestPickLocalImageForMessage();
+        mFlowListener.requestPickLocalImageForMessage();
     }
 
     @Override
     public void onTakePhoto() {
-        getFlowListener().requestTakePhotoForMessage();
+        mFlowListener.requestTakePhotoForMessage();
     }
 
     @Override
     public void onSendImage(@NonNull Uri uri) {
-        final Message msg = BaseMessage.createOutgoingMessage(new ImagePayload(uri.toString()));
-        trackSubscription(mSendMessage.execute(new SendMessageParams(mChatId, msg)).subscribe());
+        trackSubscription(mSendMessage.execute(mChatId, null, uri)
+            .compose(ScheduleOn.io()).subscribe());
     }
 
     @Override
     public void onUserTyping() {
-        trackSubscription(mSendUserIsTyping.execute(new ChatParams(mChatId)).subscribe());
+        trackSubscription(mSendUserIsTyping.execute(mChatId)
+            .compose(ScheduleOn.io()).subscribe());
     }
 
 }

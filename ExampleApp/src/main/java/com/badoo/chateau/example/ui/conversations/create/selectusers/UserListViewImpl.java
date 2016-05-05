@@ -1,6 +1,7 @@
 package com.badoo.chateau.example.ui.conversations.create.selectusers;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.ContentLoadingProgressBar;
@@ -12,14 +13,16 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.badoo.barf.mvp.BaseView;
+import com.badoo.barf.mvp.MvpView;
+import com.badoo.barf.mvp.PresenterFactory;
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.data.models.BaseUser;
+import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.chateau.example.ui.BaseActivity;
 import com.badoo.chateau.example.ui.util.BindableViewHolder;
 import com.badoo.chateau.extras.MultiSelectionHelper;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter;
+import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter.UserListView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,9 +33,9 @@ import static com.badoo.chateau.extras.MultiSelectionHelper.MODE_MULTIPLE_SELECT
 import static com.badoo.chateau.extras.MultiSelectionHelper.MODE_SINGLE_SELECT;
 
 
-class UserListViewImpl extends BaseView<UserListPresenter> implements UserListPresenter.UserListView, BaseActivity.BackPressedListener, MultiSelectionHelper.OnModeChangedListener {
+class UserListViewImpl implements UserListView<ExampleUser>, BaseActivity.BackPressedListener, MultiSelectionHelper.OnModeChangedListener, MvpView {
 
-    private final List<BaseUser> mUsers = new ArrayList<>();
+    private final List<ExampleUser> mUsers = new ArrayList<>();
 
     private final View mParent;
     private final RecyclerView mUsersList;
@@ -40,8 +43,11 @@ class UserListViewImpl extends BaseView<UserListPresenter> implements UserListPr
     private final ContentLoadingProgressBar mProgress;
 
     private final MultiSelectionHelper mMultiSelectionHelper;
+    private final UserListPresenter<ExampleUser> mPresenter;
 
-    UserListViewImpl(@NonNull ViewFinder viewFinder) {
+    UserListViewImpl(@NonNull ViewFinder viewFinder,
+                     @NonNull PresenterFactory<UserListView<ExampleUser>, UserListPresenter<ExampleUser>> presenterFactory) {
+        mPresenter = presenterFactory.init(this);
         mParent = viewFinder.findViewById(R.id.createConversation_parent);
 
         mProgress = viewFinder.findViewById(R.id.createConversation_progress);
@@ -55,9 +61,8 @@ class UserListViewImpl extends BaseView<UserListPresenter> implements UserListPr
         mGroupAction.setOnClickListener(this::onGroupActionClick);
     }
 
-
     @Override
-    public void showUsers(@NonNull List<BaseUser> users) {
+    public void showUsers(@NonNull List<ExampleUser> users) {
         mProgress.hide();
         final int oldSize = mUsers.size();
         if (mUsers.addAll(users)) {
@@ -66,19 +71,21 @@ class UserListViewImpl extends BaseView<UserListPresenter> implements UserListPr
     }
 
     @Override
-    public void showGenericError() {
-        Snackbar.make(mUsersList, R.string.error_generic, Snackbar.LENGTH_INDEFINITE).show();
+    public void showError(boolean fatal, @Nullable Throwable throwable) {
+        if (fatal) {
+            Snackbar.make(mUsersList, R.string.error_generic, Snackbar.LENGTH_INDEFINITE).show();
+        }
     }
 
     public void onGroupActionClick(View v) {
         if (mMultiSelectionHelper.getMode() == MODE_SINGLE_SELECT) {
-            mMultiSelectionHelper.switchTo(MODE_MULTIPLE_SELECT);
+            mMultiSelectionHelper.setMode(MODE_MULTIPLE_SELECT);
         }
         else {
-            getPresenter().onUsersSelected(getSelectedUsers());
+            mPresenter.onUsersSelected(getSelectedUsers());
         }
     }
-    
+
     @Override
     public boolean onBackPressed() {
         switch (mMultiSelectionHelper.getMode()) {
@@ -104,8 +111,8 @@ class UserListViewImpl extends BaseView<UserListPresenter> implements UserListPr
         }
     }
 
-    private List<BaseUser> getSelectedUsers() {
-        final List<BaseUser> users = new ArrayList<>();
+    private List<ExampleUser> getSelectedUsers() {
+        final List<ExampleUser> users = new ArrayList<>();
         for (int position : mMultiSelectionHelper.getSelectedItems()) {
             users.add(mUsers.get(position));
         }
@@ -131,7 +138,7 @@ class UserListViewImpl extends BaseView<UserListPresenter> implements UserListPr
         }
     }
 
-    class UserViewHolder extends BindableViewHolder<BaseUser> implements OnClickListener, OnLongClickListener {
+    class UserViewHolder extends BindableViewHolder<ExampleUser> implements OnClickListener, OnLongClickListener {
 
         private View mContainer;
         private TextView mName;
@@ -147,7 +154,7 @@ class UserListViewImpl extends BaseView<UserListPresenter> implements UserListPr
         }
 
         @Override
-        public void bind(BaseUser user) {
+        public void bind(ExampleUser user) {
             super.bind(user);
             mName.setText(user.getDisplayName());
             mContainer.setSelected(mMultiSelectionHelper.isPositionSelected(mUsers.indexOf(user)));
@@ -156,7 +163,7 @@ class UserListViewImpl extends BaseView<UserListPresenter> implements UserListPr
         @Override
         public void onClick(View v) {
             if (!mMultiSelectionHelper.onClick(mUsers.indexOf(getBoundItem()))) {
-                getPresenter().onUsersSelected(Collections.singletonList(getBoundItem()));
+                mPresenter.onUsersSelected(Collections.singletonList(getBoundItem()));
             }
         }
 

@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.badoo.chateau.Broadcaster;
 import com.parse.ParseUser;
 
 import org.json.JSONException;

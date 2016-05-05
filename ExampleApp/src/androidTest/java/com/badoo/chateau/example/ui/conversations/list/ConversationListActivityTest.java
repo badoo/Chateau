@@ -1,12 +1,16 @@
 package com.badoo.chateau.example.ui.conversations.list;
 
+import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
 
-import com.badoo.chateau.data.models.BaseConversation;
 import com.badoo.chateau.example.BaseTestCase;
 import com.badoo.chateau.example.R;
+import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.ui.Injector;
+import com.badoo.chateau.example.ui.conversations.list.CreateConversationPresenter.CreateConversationFlowListener;
+import com.badoo.chateau.example.ui.conversations.list.CreateConversationPresenter.CreateConversationView;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter;
+import com.badoo.chateau.ui.conversations.list.ConversationListPresenter.ConversationListFlowListener;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter.ConversationListView;
 
 import org.junit.Test;
@@ -22,14 +26,15 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.action.ViewActions.longClick;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static com.badoo.chateau.example.ui.conversations.list.ConversationListActivity.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @RunWith(AndroidJUnit4.class)
 public class ConversationListActivityTest extends BaseTestCase<ConversationListActivity> {
 
-    private ConversationListPresenter mListPresenter;
-    private ConversationListView mListView;
+    private ConversationListPresenter<ExampleConversation> mListPresenter;
+    private ExampleConversationListView mListView;
     private CreateConversationPresenter mCreateConversationPresenter;
 
     @Override
@@ -41,21 +46,21 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
     protected void beforeActivityLaunched() {
         mListPresenter = mock(ConversationListPresenter.class);
         mCreateConversationPresenter = mock(CreateConversationPresenter.class);
-        Injector.register(ConversationListActivity.class, new ConversationListActivity.DefaultConfiguration() {
+        Injector.register(ConversationListActivity.class, new DefaultConfiguration() {
 
             @Override
-            protected ConversationListView createConversationListView(ConversationListActivity activity) {
+            protected ExampleConversationListView createConversationListView(@NonNull ConversationListActivity activity) {
                 mListView = super.createConversationListView(activity);
                 return mListView;
             }
 
             @Override
-            protected ConversationListPresenter createConversationListPresenter() {
+            protected ConversationListPresenter<ExampleConversation> createConversationListPresenter(@NonNull ConversationListView<ExampleConversation> view, @NonNull ConversationListFlowListener<ExampleConversation> flowListener) {
                 return mListPresenter;
             }
 
             @Override
-            protected CreateConversationPresenter createCreateConversationPresenter() {
+            protected CreateConversationPresenter createCreateConversationPresenter(@NonNull CreateConversationView view, @NonNull CreateConversationFlowListener flowListener) {
                 return mCreateConversationPresenter;
             }
         });
@@ -73,7 +78,7 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
     @Test
     public void openConversation() {
         // Given
-        List<BaseConversation> conversations = createConversations(5);
+        List<ExampleConversation> conversations = createConversations(5);
         runOnUiThread(() -> mListView.showConversations(conversations));
 
         // When
@@ -86,7 +91,7 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
     @Test
     public void deleteSingleConversation() {
         // Given
-        List<BaseConversation> conversations = createConversations(5);
+        List<ExampleConversation> conversations = createConversations(5);
         runOnUiThread(() -> mListView.showConversations(conversations));
 
         // When
@@ -100,7 +105,7 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
     @Test
     public void deleteMultipleConversations() {
         // Given
-        List<BaseConversation> conversations = createConversations(5);
+        List<ExampleConversation> conversations = createConversations(5);
         runOnUiThread(() -> mListView.showConversations(conversations));
 
         // When
@@ -109,7 +114,7 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
         onView(withId(R.id.action_delete)).perform(click());
 
         // Then
-        List<BaseConversation> expected = new ArrayList<>();
+        List<ExampleConversation> expected = new ArrayList<>();
         expected.add(conversations.get(0));
         expected.add(conversations.get(2));
         verify(mListPresenter).onDeleteConversations(expected);
@@ -118,7 +123,7 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
     @Test
     public void backPressCancelsSelection() {
         // Given
-        List<BaseConversation> conversations = createConversations(5);
+        List<ExampleConversation> conversations = createConversations(5);
         runOnUiThread(() -> mListView.showConversations(conversations));
 
         // When
@@ -133,7 +138,7 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
     @Test
     public void unselectingOnlySelectedItemCancelsSelection() {
         // Given
-        List<BaseConversation> conversations = createConversations(5);
+        List<ExampleConversation> conversations = createConversations(5);
         runOnUiThread(() -> mListView.showConversations(conversations));
 
         // When
@@ -146,10 +151,10 @@ public class ConversationListActivityTest extends BaseTestCase<ConversationListA
     }
 
 
-    private List<BaseConversation> createConversations(int count) {
-        List<BaseConversation> conversations = new ArrayList<>();
+    private List<ExampleConversation> createConversations(int count) {
+        List<ExampleConversation> conversations = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            conversations.add(new BaseConversation(Integer.toString(i), Integer.toString(i), Collections.emptyList(), null, 0));
+            conversations.add(new ExampleConversation(Integer.toString(i), Integer.toString(i), Collections.emptyList(), null, 0));
         }
         return conversations;
     }

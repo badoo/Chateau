@@ -14,20 +14,20 @@ import rx.Observable;
  * @see com.badoo.barf.data.repo.annotations.Handles
  * @see com.badoo.barf.data.repo.annotations.HandlesUtil
  */
-public class DelegatingRepository<Q extends Query, R> extends BaseRepository<Q, R> {
+public class DelegatingRepository<T> extends BaseRepository<T> {
 
     public final Map<Class<?>, QueryHandler<?, ?>> mRegisteredHandlers = new HashMap<>();
 
     /**
      * Register a given query type against a handler.
      */
-    public void registerHandler(Class<Q> type, QueryHandler<Q, R> handler) {
+    public <Result> void registerHandler(Class<Query<Result>> type, QueryHandler<Query<Result>, Result> handler) {
         mRegisteredHandlers.put(type, handler);
     }
 
     @NonNull
     @Override
-    protected Observable<R> createObservable(@NonNull Q query) {
+    protected <Result> Observable<Result> createObservable(@NonNull Query<Result> query) {
         final QueryHandler handler = mRegisteredHandlers.get(query.getClass());
         if (handler == null) {
             throw new IllegalArgumentException(String.format("No handler is registered for query %s", query.getClass()));

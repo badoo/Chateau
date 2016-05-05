@@ -1,38 +1,30 @@
 package com.badoo.chateau.core.usecases.messages;
 
+import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
+import android.support.annotation.Nullable;
 
-import com.badoo.barf.data.repo.Repositories;
+import com.badoo.barf.data.repo.Repository;
+import com.badoo.barf.usecase.UseCase;
 import com.badoo.chateau.core.model.Message;
-import com.badoo.chateau.core.repos.messages.MessageQuery;
-import com.badoo.chateau.core.repos.messages.MessageRepository;
+import com.badoo.chateau.core.repos.messages.MessageQueries;
 
 import rx.Observable;
 
-public class SendMessage extends BaseChatUseCase<SendMessage.SendMessageParams, Void> {
+/**
+ * Use case for sending a new message
+ */
+@UseCase
+public class SendMessage {
 
-    public SendMessage() {
-        super(Repositories.getRepo(MessageRepository.KEY));
+    private final Repository<? extends Message> mRepo;
+
+    public SendMessage(Repository<? extends Message> repo) {
+        mRepo = repo;
     }
 
-    @VisibleForTesting
-    protected SendMessage(MessageRepository messageRepository) {
-        super(messageRepository);
-    }
-
-    @Override
-    protected Observable<Void> createObservable(SendMessageParams params) {
-        getRepo().query(new MessageQuery.SendMessage(params.mChatId, params.mMessage));
-        return Observable.empty();
-    }
-
-    public static class SendMessageParams extends ChatParams {
-        private final Message mMessage;
-
-        public SendMessageParams(@NonNull String chatId, Message message) {
-            super(chatId);
-            mMessage = message;
-        }
+    public Observable<Void> execute(@NonNull String conversationId, @Nullable String message, @Nullable Uri mediaUri) {
+        return mRepo.query(new MessageQueries.SendMessageQuery(conversationId, message, mediaUri))
+            .ignoreElements();
     }
 }

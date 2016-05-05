@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 
 import com.badoo.chateau.data.models.BaseMessage;
+import com.badoo.chateau.example.data.model.ExampleMessage;
 
 public class BaseItemClickListener implements MessageListAdapter.ItemClickListener {
 
@@ -17,14 +18,14 @@ public class BaseItemClickListener implements MessageListAdapter.ItemClickListen
     }
 
     @Override
-    public void onClick(@NonNull BaseMessage message) {
+    public void onClick(@NonNull ExampleMessage message) {
         if(!(mRecyclerView.isComputingLayout() || mRecyclerView.isAnimating())) {
             mAdapter.toggleTimestampForMessage(message);
         }
     }
 
     @Override
-    public boolean onLongPress(@NonNull BaseMessage message) {
+    public boolean onLongPress(@NonNull ExampleMessage message) {
         return true;
     }
 }

@@ -7,13 +7,22 @@ import com.badoo.chateau.core.model.User;
 
 import rx.Observable;
 
-public interface IsTypingDataSource {
+/**
+ * Defines a data source for providing information about whether a participant of a conversation is typing.
+ */
+public interface IsTypingDataSource<U extends User> {
 
-    @Handles(IsTypingQuery.SendIsTyping.class)
-    void sendUserIsTyping(@NonNull IsTypingQuery.SendIsTyping query);
+    /**
+     * Should be called when the user is typing a message.
+     */
+    @Handles(IsTypingQueries.SendIsTyping.class)
+    Observable<Void> sendUserIsTyping(@NonNull IsTypingQueries.SendIsTyping query);
 
+    /**
+     * Returns an observable that will be updated whenever a user is typing.
+     */
     @NonNull
-    @Handles(IsTypingQuery.SubscribeToUsersTyping.class)
-    Observable<User> SubscribeToUsersTyping(@NonNull IsTypingQuery.SubscribeToUsersTyping query);
+    @Handles(IsTypingQueries.SubscribeToUsersTypingQuery.class)
+    Observable<U> subscribeToUsersTyping(@NonNull IsTypingQueries.SubscribeToUsersTypingQuery query);
 
 }

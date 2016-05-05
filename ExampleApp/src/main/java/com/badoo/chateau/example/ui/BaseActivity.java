@@ -6,7 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import com.badoo.barf.mvp.Presenter;
+import com.badoo.barf.mvp.MvpPresenter;
 import com.badoo.chateau.example.R;
 
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ import java.util.Collection;
 
 public class BaseActivity extends AppCompatActivity {
 
-    private final Collection<Presenter> mPresenters = new ArrayList<>();
+    private final Collection<MvpPresenter> mPresenters = new ArrayList<>();
     @Nullable
     private BackPressedListener mBackPressedListener;
 
@@ -50,7 +50,7 @@ public class BaseActivity extends AppCompatActivity {
     /**
      * Register a presenter to ensure it's lifecycle methods are called.¬
      */
-    public void registerPresenter(@NonNull Presenter presenter) {
+    public void registerPresenter(@NonNull MvpPresenter presenter) {
         mPresenters.add(presenter);
         presenter.onCreate();
     }
@@ -62,7 +62,7 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        for (Presenter presenter : mPresenters) {
+        for (MvpPresenter presenter : mPresenters) {
             presenter.onStart();
         }
     }
@@ -70,14 +70,14 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        for (Presenter presenter : mPresenters) {
+        for (MvpPresenter presenter : mPresenters) {
             presenter.onStop();
         }
     }
 
     @Override
     protected void onDestroy() {
-        for (Presenter presenter : mPresenters) {
+        for (MvpPresenter presenter : mPresenters) {
             presenter.destroy();
         }
         super.onDestroy();

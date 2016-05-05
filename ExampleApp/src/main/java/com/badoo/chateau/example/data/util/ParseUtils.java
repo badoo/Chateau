@@ -2,15 +2,13 @@ package com.badoo.chateau.example.data.util;
 
 import android.text.TextUtils;
 
-import com.badoo.chateau.data.models.BaseConversation;
 import com.badoo.chateau.data.models.BaseUser;
-import com.badoo.chateau.data.models.BaseMessage;
 import com.badoo.chateau.data.models.payloads.ImagePayload;
 import com.badoo.chateau.data.models.payloads.Payload;
 import com.badoo.chateau.data.models.payloads.TextPayload;
-import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.model.Message;
-import com.badoo.chateau.core.model.User;
+import com.badoo.chateau.example.data.model.ExampleConversation;
+import com.badoo.chateau.example.data.model.ExampleMessage;
+import com.badoo.chateau.example.data.model.ExampleUser;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
 
@@ -134,12 +132,12 @@ public class ParseUtils {
      * Parse Model Conversion
      *************************/
 
-    public static User fromParseUser(ParseUser in) {
-        return new BaseUser(in.getObjectId(),
+    public static ExampleUser fromParseUser(ParseUser in) {
+        return new ExampleUser(in.getObjectId(),
             in.getString(UsersTable.Fields.DISPLAY_NAME));
     }
 
-    public static Message baseMessageFromParseObject(ParseObject o) {
+    public static ExampleMessage baseMessageFromParseObject(ParseObject o) {
         if (o == null) {
             return null;
         }
@@ -171,40 +169,40 @@ public class ParseUtils {
                 payload = new TextPayload(o.getString(MessagesTable.Fields.MESSAGE));
             }
             final boolean fromMe = ParseUser.getCurrentUser().getObjectId().equals(from);
-            return new BaseMessage(id, localId, fromMe, from, payload, timestamp, false);
+            return new ExampleMessage(id, localId, fromMe, from, payload, timestamp, false);
         }
         catch (Exception e) {
             throw new RuntimeException("Failed to convert message with id: " + o.getObjectId(), e);
         }
     }
 
-    public static Conversation conversationFromChat(ParseObject chat) {
+    public static ExampleConversation conversationFromChat(ParseObject chat) {
         String name = chat.getString(ChatTable.Fields.NAME);
         List<BaseUser> users = Collections.emptyList(); // TODO: Populate!
         int unread = 0;
-        return new BaseConversation(chat.getObjectId(),
+        return new ExampleConversation(chat.getObjectId(),
             name,
             users,
             baseMessageFromParseObject((ParseObject) chat.get(ChatTable.Fields.LAST_MESSAGE)),
             unread);
     }
 
-    public static Conversation conversationFromSubscription(ParseObject subscription) {
+    public static ExampleConversation conversationFromSubscription(ParseObject subscription) {
         final ParseObject chatParseObject = subscription.getParseObject(ChatSubscriptionTable.Fields.CHAT);
         if (chatParseObject.isDataAvailable()) {
             final String name = TextUtils.isEmpty(chatParseObject.getString(ChatTable.Fields.NAME)) ? subscription.getString(ChatSubscriptionTable.Fields.NAME) : chatParseObject.getString(ChatTable.Fields.NAME);
             final List<BaseUser> users = Collections.emptyList(); // TODO: Populate!
             int unread = chatParseObject.getInt(ChatTable.Fields.MESSAGE_COUNT) - subscription.getInt(ChatSubscriptionTable.Fields.LAST_SEEN_COUNT);
             final boolean hasLastMessage = chatParseObject.has(ChatTable.Fields.LAST_MESSAGE) && chatParseObject.getParseObject(ChatTable.Fields.LAST_MESSAGE).isDataAvailable();
-            final Message lastMessage = hasLastMessage ? baseMessageFromParseObject(chatParseObject.getParseObject(ChatTable.Fields.LAST_MESSAGE)) : null;
-            return new BaseConversation(chatParseObject.getObjectId(),
+            final ExampleMessage lastMessage = hasLastMessage ? baseMessageFromParseObject(chatParseObject.getParseObject(ChatTable.Fields.LAST_MESSAGE)) : null;
+            return new ExampleConversation(chatParseObject.getObjectId(),
                 name,
                 users,
                 lastMessage,
                 unread);
         }
         else {
-            return new BaseConversation(chatParseObject.getObjectId());
+            return new ExampleConversation(chatParseObject.getObjectId());
         }
     }
 }

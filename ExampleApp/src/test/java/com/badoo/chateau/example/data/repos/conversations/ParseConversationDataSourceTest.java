@@ -2,10 +2,14 @@ package com.badoo.chateau.example.data.repos.conversations;
 
 import android.support.annotation.NonNull;
 
-import com.badoo.chateau.data.models.BaseUser;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries;
+import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.data.util.ParseHelper;
-import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.model.User;
+import com.badoo.chateau.example.data.util.ParseUtils.ChatSubscriptionTable;
+import com.badoo.chateau.example.data.util.ParseUtils.CreateChatFunc;
+import com.badoo.chateau.example.data.util.ParseUtils.DeleteConversationsFunc;
+import com.badoo.chateau.example.data.util.ParseUtils.GetMySubscriptionsFunc;
+import com.badoo.chateau.example.data.util.ParseUtils.MarkChatReadFunc;
 import com.badoo.unittest.MapMatchers;
 import com.badoo.unittest.ModelTestHelper;
 import com.badoo.unittest.rx.BaseRxTestCase;
@@ -18,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -31,17 +36,12 @@ import java.util.Map;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 
-import com.badoo.chateau.example.data.util.ParseUtils.ChatSubscriptionTable;
-import com.badoo.chateau.example.data.util.ParseUtils.CreateChatFunc;
-import com.badoo.chateau.example.data.util.ParseUtils.DeleteConversationsFunc;
-import com.badoo.chateau.example.data.util.ParseUtils.GetMySubscriptionsFunc;
-import com.badoo.chateau.example.data.util.ParseUtils.MarkChatReadFunc;
-import static com.badoo.chateau.core.repos.conversations.ConversationQuery.CreateConversationQuery;
-import static com.badoo.chateau.core.repos.conversations.ConversationQuery.CreateGroupConversationQuery;
-import static com.badoo.chateau.core.repos.conversations.ConversationQuery.DeleteConversationsQuery;
-import static com.badoo.chateau.core.repos.conversations.ConversationQuery.GetConversationQuery;
-import static com.badoo.chateau.core.repos.conversations.ConversationQuery.GetConversationsForCurrentUserQuery;
-import static com.badoo.chateau.core.repos.conversations.ConversationQuery.MarkConversationReadQuery;
+import static com.badoo.chateau.core.repos.conversations.ConversationQueries.CreateConversationQuery;
+import static com.badoo.chateau.core.repos.conversations.ConversationQueries.CreateGroupConversationQuery;
+import static com.badoo.chateau.core.repos.conversations.ConversationQueries.DeleteConversationsQuery;
+import static com.badoo.chateau.core.repos.conversations.ConversationQueries.GetConversationQuery;
+import static com.badoo.chateau.core.repos.conversations.ConversationQueries.LoadConversationsQuery;
+import static com.badoo.chateau.core.repos.conversations.ConversationQueries.MarkConversationReadQuery;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.argThat;
@@ -64,7 +64,6 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
     @Before
     public void beforeTest() {
         super.beforeTest();
-        mMockParseHelper = mock(ParseHelper.class);
         mTarget = new ParseConversationDataSource(mMockParseHelper);
     }
 
@@ -74,14 +73,14 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
         final List<ParseObject> subscriptions = ModelTestHelper.createSubscriptions(10);
         when(mMockParseHelper.<List<ParseObject>>callFunction(GetMySubscriptionsFunc.NAME, Collections.emptyMap()))
             .thenReturn(Observable.just(subscriptions));
+        final TestSubscriber<List<ExampleConversation>> testSubscriber = new TestSubscriber<>();
+        mTarget.subscribeToConversations(new ConversationQueries.SubscribeToConversations()).subscribe(testSubscriber);
 
         // Execute
-        final TestSubscriber<Conversation> testSubscriber = executeTarget(mTarget.getConversationsForLoggedInUser(new GetConversationsForCurrentUserQuery()));
+        executeTarget(mTarget.loadConversations(LoadConversationsQuery.query()));
 
         // Assert
-        testSubscriber.assertCompleted();
-        assertThat(testSubscriber.getOnNextEvents().size(), is(10));
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
+        assertThat(testSubscriber.getOnNextEvents().size(), is(1));
     }
 
     @Test
@@ -95,11 +94,10 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
         when(mMockParseHelper.find(Mockito.<ParseQuery<ParseObject>>any())).thenReturn(Observable.just(subscriptions));
 
         // Execute
-        final TestSubscriber<Conversation> testSubscriber = executeTarget(mTarget.getConversation(new GetConversationQuery(chatId)));
+        final TestSubscriber<ExampleConversation> testSubscriber = executeTarget(mTarget.getConversation(new GetConversationQuery(chatId)));
 
         // Assert
         testSubscriber.assertCompleted();
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
         verify(mMockParseHelper).find(mParseQueryArgumentCaptor.capture());
 
         final ParseQuery<ParseObject> parseQuery = mParseQueryArgumentCaptor.getValue();
@@ -110,7 +108,6 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
     @Test
     public void createGroupConversation() {
         // Setup
-        final List<User> users = ModelTestHelper.createUsers(10);
         final List<String> userIds = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             userIds.add(Integer.toString(i));
@@ -126,13 +123,12 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
             .thenReturn(Observable.just(subscription));
 
         // Execute
-        final TestSubscriber<Conversation> testSubscriber = executeTarget(
+        final TestSubscriber<ExampleConversation> testSubscriber = executeTarget(
             mTarget.createGroupConversation(new CreateGroupConversationQuery(userIds, groupName)));
 
         // Assert
         testSubscriber.assertCompleted();
         assertThat(testSubscriber.getOnNextEvents().size(), is(1));
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
     }
 
     @Test
@@ -146,13 +142,12 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
             .thenReturn(Observable.just(subscription));
 
         // Execute
-        final TestSubscriber<Conversation> testSubscriber = executeTarget(
-            mTarget.createConversation(new CreateConversationQuery(new BaseUser("0", "User0"))));
+        final TestSubscriber<ExampleConversation> testSubscriber = executeTarget(
+            mTarget.createConversation(new CreateConversationQuery("0")));
 
         // Assert
         testSubscriber.assertCompleted();
         assertThat(testSubscriber.getOnNextEvents().size(), is(1));
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
     }
 
     @Test
@@ -171,7 +166,6 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
         // Assert
         testSubscriber.assertCompleted();
         assertThat(testSubscriber.getOnNextEvents().size(), is(0));
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
     }
 
     @Test
@@ -189,16 +183,17 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
         when(mMockParseHelper.<List<ParseObject>>callFunction(eq(DeleteConversationsFunc.NAME), argThat(MapMatchers.matchesEntriesIn(expectedParams))))
             .thenReturn(Observable.just(subscription));
 
-        final List<Conversation> conversations = ModelTestHelper.createConversations(10);
+
+        when(mMockParseHelper.<List<ParseObject>>callFunction(eq(GetMySubscriptionsFunc.NAME), Matchers.<Map<String, Object>>any())).thenReturn(Observable.empty());
+
+        final List<ExampleConversation> conversations = ModelTestHelper.createConversations(10);
 
         // Execute
-        final TestSubscriber<Conversation> testSubscriber = executeTarget(
-            mTarget.deleteConversations(new DeleteConversationsQuery(conversations)));
+        final TestSubscriber<Void> testSubscriber = executeTarget(mTarget.deleteConversations(new DeleteConversationsQuery<>(conversations)));
 
         // Assert
         testSubscriber.assertCompleted();
-        assertThat(testSubscriber.getOnNextEvents().size(), is(10));
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
+        verify(mMockParseHelper).<List<ParseObject>>callFunction(eq(DeleteConversationsFunc.NAME), argThat(MapMatchers.matchesEntriesIn(expectedParams)));
     }
 
     private ParseUser mockCurrentUser(@NonNull String userId) {

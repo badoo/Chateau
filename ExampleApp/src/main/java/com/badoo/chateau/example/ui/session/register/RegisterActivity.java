@@ -4,27 +4,33 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+import com.badoo.barf.mvp.PresenterFactory;
 import com.badoo.chateau.example.R;
+import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.chateau.example.ui.BaseActivity;
+import com.badoo.chateau.example.ui.ExampleConfiguration;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.conversations.list.ConversationListActivity;
 import com.badoo.chateau.example.ui.session.login.LoginActivity;
+import com.badoo.chateau.example.ui.session.register.RegistrationPresenter.RegistrationView;
+import com.badoo.chateau.example.usecases.session.Register;
 import com.badoo.chateau.extras.ViewFinder;
 
-public class RegisterActivity extends BaseActivity implements RegistrationPresenter.RegistrationFlowListener {
+import static com.badoo.chateau.example.ui.session.register.RegistrationPresenter.*;
 
-    public static class DefaultConfiguration extends Injector.BaseConfiguration<RegisterActivity> {
+public class RegisterActivity extends BaseActivity implements RegistrationFlowListener {
+
+    public static class DefaultConfiguration extends ExampleConfiguration<RegisterActivity> {
 
         @Override
         public void inject(RegisterActivity target) {
-            RegistrationView view = new RegistrationViewImpl(ViewFinder.from(target));
-            final RegistrationPresenter presenter = createPresenter();
-            bind(view, presenter, target);
-            target.setRegistrationPresenter(presenter);
+            final PresenterFactory<RegistrationView, RegistrationPresenter> presenterFactory = new PresenterFactory<>(v -> createRegistrationPresenter(v, target));
+            new RegistrationViewImpl(ViewFinder.from(target), presenterFactory);
+            target.registerPresenter(presenterFactory.get());
         }
 
-        protected RegistrationPresenter createPresenter() {
-            return new RegistrationPresenterImpl();
+        protected RegistrationPresenterImpl<ExampleUser> createRegistrationPresenter(@NonNull RegistrationView view, @NonNull RegistrationFlowListener flowListener) {
+            return new RegistrationPresenterImpl<>(view, flowListener, new Register<>(getSessionRepo()));
         }
     }
 
@@ -52,6 +58,7 @@ public class RegisterActivity extends BaseActivity implements RegistrationPresen
     private void openConversationsList() {
         final Intent intent = new Intent(this, ConversationListActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        finish();
         startActivity(intent);
     }
 

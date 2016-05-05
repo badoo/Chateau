@@ -4,55 +4,31 @@ import android.support.annotation.NonNull;
 
 import com.badoo.barf.data.repo.annotations.Handles;
 import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery.CreateConversationQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery.CreateGroupConversationQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery.DeleteConversationsQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery.GetConversationQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery.GetConversationsForCurrentUserQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery.MarkConversationReadQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery.SubscribeToConversationUpdatesQuery;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries.CreateConversationQuery;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries.CreateGroupConversationQuery;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries.DeleteConversationsQuery;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries.LoadConversationsQuery;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries.MarkConversationReadQuery;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries.SubscribeToConversations;
+
+import java.util.List;
 
 import rx.Observable;
 
 /**
- * Defines a data source providing conversations the {@link ConversationsRepository}
+ * Defines a data source providing conversations
  */
-public interface ConversationDataSource {
+public interface ConversationDataSource<C extends Conversation> {
 
     /**
-     * Return a list containing all the logged in users conversations.
+     * Loads conversations and publishes updates via {@link #subscribeToConversations(SubscribeToConversations)}.  The returned observable
+     * contains a single boolean indicating if it is possible to get more conversations in this direction.  For example if a request was made
+     * with chunkBefore, <code>true</code> would be published if requesting using chunkBefore for the oldest conversation could return more
+     * data.  <code>true</code> will always be returned if chunkBefore and chunkAfter are <code>null</code>
      */
-    @Handles(GetConversationsForCurrentUserQuery.class)
+    @Handles(LoadConversationsQuery.class)
     @NonNull
-    Observable<Conversation> getConversationsForLoggedInUser(GetConversationsForCurrentUserQuery query);
-
-    /**
-     * Return a single conversation
-     */
-    @Handles(GetConversationQuery.class)
-    @NonNull
-    Observable<Conversation> getConversation(GetConversationQuery query);
-
-    /**
-     * Returns updated conversations
-     */
-    @Handles(SubscribeToConversationUpdatesQuery.class)
-    @NonNull
-    Observable<Conversation> subscribeToUpdates(SubscribeToConversationUpdatesQuery query);
-
-    /**
-     * Creates a conversation for a given list of users
-     */
-    @Handles(CreateGroupConversationQuery.class)
-    @NonNull
-    Observable<Conversation> createGroupConversation(CreateGroupConversationQuery query);
-
-    /**
-     * Creates a conversation for a given list of users
-     */
-    @Handles(CreateConversationQuery.class)
-    @NonNull
-    Observable<Conversation> createConversation(CreateConversationQuery query);
+    Observable<Boolean> loadConversations(LoadConversationsQuery<C> query);
 
     /**
      * Marks a conversation as read up to the latest message
@@ -66,5 +42,34 @@ public interface ConversationDataSource {
      */
     @Handles(DeleteConversationsQuery.class)
     @NonNull
-    Observable<Conversation> deleteConversations(DeleteConversationsQuery query);
+    Observable<Void> deleteConversations(DeleteConversationsQuery<C> query);
+
+    /**
+     * Used to listen to conversations stored in the data source.
+     */
+    @Handles(SubscribeToConversations.class)
+    @NonNull
+    Observable<List<C>> subscribeToConversations(SubscribeToConversations<C> query);
+
+    /**
+     * Returns an single conversation matching the query if it exists.
+     */
+    @Handles(ConversationQueries.GetConversationQuery.class)
+    @NonNull
+    Observable<C> getConversation(ConversationQueries.GetConversationQuery query);
+
+    /**
+     * Creates a conversation for a given list of users
+     */
+    @Handles(CreateConversationQuery.class)
+    @NonNull
+    Observable<C> createConversation(CreateConversationQuery<C> query);
+
+    /**
+     * Creates a conversation for a given list of users
+     */
+    @Handles(CreateGroupConversationQuery.class)
+    @NonNull
+    Observable<C> createGroupConversation(CreateGroupConversationQuery<C> query);
+
 }

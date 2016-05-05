@@ -34,6 +34,10 @@ public class LoadingAdapter<T extends ViewHolder> extends RecyclerView.Adapter<V
         }));
     }
 
+    public int getAdjustedPosition(int position) {
+        return getWrappedAdapterPosition(position);
+    }
+
     /**
      * Show or hide loading.
      */
@@ -81,6 +85,14 @@ public class LoadingAdapter<T extends ViewHolder> extends RecyclerView.Adapter<V
             return mViewTypeId;
         }
         return mWrappedAdapter.getItemViewType(getWrappedAdapterPosition(position));
+    }
+
+    @Override
+    public long getItemId(int position) {
+        if (mLoading && position == 0) {
+            return Long.MAX_VALUE;
+        }
+        return mWrappedAdapter.getItemId(getWrappedAdapterPosition(position));
     }
 
     private int getWrappedAdapterPosition(int position) {

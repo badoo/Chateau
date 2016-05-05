@@ -2,15 +2,10 @@ package com.badoo.chateau.example.ui;
 
 import android.support.annotation.NonNull;
 
-import com.badoo.barf.mvp.Presenter;
-import com.badoo.barf.mvp.View;
-
 import java.util.HashMap;
 import java.util.Map;
 
 public class Injector {
-
-    private static final String TAG = Injector.class.getSimpleName();
 
     private static Map<Class<?>, Configuration<?>> sConfigurator = new HashMap<>();
 
@@ -30,17 +25,5 @@ public class Injector {
     public interface Configuration<T> {
 
         void inject(T target);
-
-        <P extends Presenter<V, F>, V extends View<P>, F extends Presenter.FlowListener> void bind(V view, P presenter, F flowListener);
-    }
-
-    public abstract static class BaseConfiguration<T> implements Configuration<T> {
-
-        @Override
-        public <P extends Presenter<V, F>, V extends View<P>, F extends Presenter.FlowListener> void bind(V view, P presenter, F flowListener) {
-            presenter.attachView(view);
-            presenter.attachFlowListener(flowListener);
-            view.attachPresenter(presenter);
-        }
     }
 }

@@ -1,6 +1,6 @@
 #Chateau
 
-Chateau is a framework for adding (or improving) chat functionality in any Android app. Built in a modular way using MVP and clean architecture, it can easily be integrated with your chat backend with only minor changes to the included UI.
+Chateau is a framework for adding (or improving) chat functionality in any Android app. Built in a modular way using MVP and Clean Architecture, it can easily be integrated with your chat backend with only minor changes to the included UI.
 
 <div align="center">
     <img src="./doc/conversations-screenshot.png" />
@@ -57,7 +57,16 @@ As the above only gives a rough overview of clean architecture I'd strongly reco
 
 The data layers consists of repositories and data sources.  Generally repositories are used to map queries to data sources.  The aid with this, the [DelegatingRepository.java](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/data/repo/DelegatingRepository.java) has been created, which allows query handlers to be registered for each query which in turn map them to a data source.  It is also possible to annotate a data source using the [Handles.java](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/data/repo/annotations/Handles.java) annoatation.  Currently this is progressed using reflection, but there is a future task to before this via an annoation processor.
 
+It is important to note, that the [Query](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/data/repo/Query.java) has a generic type.  This at first may seem redundent, but it used to type the result type when used against a repository.  Initially repositories could only return a single type, which didn't really make sense in most situations, and also let to the point where most repositoties returned a list of a type, when most of the time only the single of that type was needed.
+
+Generally we model our datasource in the following way:
+  - A subscription method, which returns the current data that data source contains. (Note in some rare cases multiple subscription methods will be needed, however this generally indicates that the data source should be split)
+  - Command methods which cause modification to the data in the data source.  Once the modification is complete, the current state of the data should be published to any subscribers.
+  - Query methods which query data contains in the data source.  These may or may not return some data, but will not cause data to be published to subscribers.
+
 Examples of the configuration of Repositories and Datasources can be found in [ChatExampleApp.java](https://github.com/badoo/Chateau/tree/master/ExampleApp/src/main/java/com/badoo/chateau/example/ChatExampleApp.java).
+
+
 
 ### How we MVP
 
@@ -79,7 +88,20 @@ interface Presenter {
 
 Presenters and Views are defined together as interfaces, giving us a clear overview of all the interactions that can occur between the two. By always using interfaces it is also very easy to replace the actual (Presenter or View) implementation with a mock when testing.
 
-Another decision we made was to always keep the View implementation separate from the Activity or Fragment which is using it. This allows the view to be used in either easily.
+Another decision we made was to always keep the View implementation separate from the Activity or Fragment which is using it. This allows the view to be easily used in either one.
+
+#### View and Presenter implementations
+
+When creating an implementions of views and presenters we follow a certain set of practices.
+
+  - The following is passed to the presenter constructor:
+    - The View implementation (by its interface)
+    - The use cases the presenter requires to operate
+  - The view implementation is given via it's constuctor
+    - A [PresenterFactor](https://github.com/badoo/Chateau/tree/master/Barf/src/main/java/com/badoo/barf/mvp/PresenterFactory.java) which is used to instantiate the presenter.  This allows both the view and presenter to have access to each other in their constuctors.  Because of this pattern, calls to the view's methods during the constuction of the presenter should be avoided.
+    - A [ViewFinder](https://github.com/badoo/Chateau/tree/master/ChateauExtras/src/main/java/com/badoo/chateau/extras/ViewFinder.java) is generally used to find the views as it allways easy access to finding views by id whether the view owner is a Fragment or an Activity.
+
+**Note:** When adding functionality to a screen, it is prefered to additional presenters (composition) rather than extending the current presenter, however there is times where the later is preferable.
 
 ### Wiring it all together
 
@@ -102,6 +124,10 @@ If you are looking to build a more customized chat experience (without the extra
 ### Chateau
 
 The main library containing implementations for the different Presenters which together provides the chat experience (Listing, creating and deleting conversations, listing and sending messages, retrieving information about users). In addition to this it contains implementations for the models defined in ChateauCore.
+
+### ChateauExtras
+
+Contains any useful utility classes that are not part of the core framework, at some point this might be moved to a seperate library outside of the Chateau project.
 
 ### ExampleApp
 
@@ -155,8 +181,8 @@ Now that you got the server up and running it's time to point the app towards th
 
 In order to get your basic chat functionality up and running there are two main components that needs to be added.
 
- * Backend integration (in the form of data sources).
- * UI (for displaying different types of messages as well as for handling composing the messages).
+ * Backend integration (in the form of data sources)
+ * UI (for displaying different types of messages as well as for handling composing the messages)
 
 ### Backend integration
 
@@ -167,17 +193,19 @@ To integrate Chateau with your backend you will need to create implementations o
 * `com.badoo.chateau.core.repos.istyping.IsTypingDataSource`
 * `com.badoo.chateau.core.repos.users.UserDataSource`
 
-The next step is to register your implementation so that it can be accessed by the use cases. The best place to do is from your Application class' `onCreate()` method like this:
+The next step is to make sure that instances of the repositories for these data sources are available to the Use Cases that needs them. Exactly how you want to do this is up to you but here are some suggestions:
 
-``
-Repositories.registerRepo(SessionRepository.KEY, new SessionRepository(new ParseSessionDataSource(...)));
-``
+* Singletons (easy but could make testing a bit messy)
+* Use a dependency injection framework (e.g. Dagger 2)
+* Instantiate when needed (could work if they have no state)
 
-For more example check ChatExampleApp in the ExampleApp module.
+In the example app we are using a simple configuration class that contains references to all the needed repositories. Please check `com.badoo.chateau.example.ui.ExampleConfiguration` and `com.badoo.chateau.example.ChatExampleApp` for an example of this.
+
+**TIP:** *If you want to add functionality to the built-in presenters we would in most cases recommend that you add a separate presenter or a composite presenter. However, the base class can also be extended using inheritance as long as you take care when dealing with the generic parmeters for the View type.*
 
 ### UI Integration
 
-The main part of the UI integration work is to implement the Views (MVP Views that is) that are matched up with the Preseters defined in the Chateau library.
+The main part of the UI integration work is to implement the Views (MVP Views that is) that are matched up with the Presenters defined in the Chateau library.
 
 For basic functionality (to be able to list the current conversations and read and send messages in a conversation) you will need to implement the following views.
 
@@ -193,17 +221,16 @@ Optionally you can also implement the following views if you want to be able to 
 After doing this you will need to make sure that both the presenters and views are created in your Activity or Fragment.
 The following simple example shows how this could be done in the activity's `onCreate()` method.
 
-``
-RegistrationView view = new RegistrationViewImpl(...);
-RegistrationPresenter presenter = new RegistrationPresenterImpl();
-presenter.attachView(view);
-view.attachPresenter(presenter);
-``
+```
+final PresenterFactory<RegistrationView, RegistrationPresenter> presenterFactory = new PresenterFactory<>(v -> createRegistrationPresenter(v, target));
+new RegistrationViewImpl(..., presenterFactory);
+presenter = presenterFactory.get();
+```
 
-Please see the reference implementation in the ExampleApp app for more details.
+In the example above the `createRegistrationPresenter(...)` method creates the presenter and passes in the use cases that are needed. These use cases in turn needs access to the repositories that you previously configured (see Backend Integration for more details).
 
 ## Who are we?
-Many people at Badoo have contributed greatly to the Chateau project (Thanks go out to everyone contributing to the architecture as well as our awesome QA team!).
+Many people at Badoo have contributed greatly to the Chateau project in one form or other (Thanks go out to everyone contributing to the architecture as well as our awesome QA team!).
 
 ### Erik
 

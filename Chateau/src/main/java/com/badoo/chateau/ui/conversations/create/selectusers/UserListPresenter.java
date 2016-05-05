@@ -1,29 +1,40 @@
 package com.badoo.chateau.ui.conversations.create.selectusers;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
-import com.badoo.barf.mvp.Presenter;
-import com.badoo.barf.mvp.View;
-import com.badoo.chateau.data.models.BaseUser;
+import com.badoo.barf.mvp.FlowListener;
+import com.badoo.barf.mvp.MvpPresenter;
+import com.badoo.barf.mvp.MvpView;
+import com.badoo.chateau.core.model.Conversation;
+import com.badoo.chateau.core.model.User;
 
 import java.util.List;
 
-public interface UserListPresenter extends Presenter<UserListPresenter.UserListView, UserListPresenter.UserListFlowListener> {
+public interface UserListPresenter<U extends User> extends MvpPresenter {
 
-    void onUsersSelected(List<BaseUser> user);
+    /**
+     * To be invoked when the final selection of users has been made.
+     */
+    void onUsersSelected(List<U> userIds);
 
-    interface UserListView extends View<UserListPresenter> {
+    interface UserListView<U extends User> extends MvpView {
 
-        void showUsers(@NonNull List<BaseUser> users);
+        void showUsers(@NonNull List<U> users);
 
-        void showGenericError();
+        /**
+         * Show an error message to the user (if the error warrants it)
+         *
+         * @param fatal true if the error was fatal, false if it can be ignored while still maintaining some functionality.
+         */
+        void showError(boolean fatal, @Nullable Throwable throwable);
 
     }
 
-    interface UserListFlowListener extends Presenter.FlowListener {
+    interface UserListFlowListener<C extends Conversation, U extends User> extends FlowListener {
 
-        void requestOpenChat(@NonNull String chatId);
+        void requestOpenChat(@NonNull C conversation);
 
-        void requestCreateGroupChat(@NonNull List<BaseUser> users);
+        void requestCreateGroupChat(@NonNull List<U> users);
     }
 }

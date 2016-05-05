@@ -1,37 +1,39 @@
 package com.badoo.chateau.ui.conversations.create.selectusers;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
-import com.badoo.barf.mvp.BasePresenter;
-import com.badoo.chateau.data.models.BaseConversation;
-import com.badoo.chateau.data.models.BaseUser;
+import com.badoo.barf.mvp.BaseRxPresenter;
+import com.badoo.barf.rx.ScheduleOn;
+import com.badoo.chateau.core.model.Conversation;
 import com.badoo.chateau.core.usecases.conversations.CreateConversation;
 import com.badoo.chateau.core.usecases.users.GetUsers;
+import com.badoo.chateau.data.models.BaseUser;
 
 import java.util.List;
 
 import rx.Observable;
 import rx.Subscription;
 
-import static com.badoo.barf.usecase.UseCase.NoParams;
-
-public class UserListPresenterImpl extends BasePresenter<UserListPresenter.UserListView, UserListPresenter.UserListFlowListener> implements UserListPresenter {
+public class UserListPresenterImpl<U extends BaseUser, C extends Conversation> extends BaseRxPresenter
+    implements UserListPresenter<U> {
 
     private static final String TAG = UserListPresenterImpl.class.getSimpleName();
 
     @NonNull
-    private final GetUsers mGetUsers;
+    private final UserListView<U> mView;
+    private UserListFlowListener<C, U> mFlowListener;
     @NonNull
-    private final CreateConversation mCreateConversation;
+    private final GetUsers<U> mGetUsers;
+    @NonNull
+    private final CreateConversation<C> mCreateConversation;
 
-    public UserListPresenterImpl() {
-        this(new GetUsers(), new CreateConversation());
-    }
-
-    @VisibleForTesting
-    UserListPresenterImpl(@NonNull GetUsers getUsers, @NonNull CreateConversation createConversation) {
+    public UserListPresenterImpl(@NonNull UserListView<U> view,
+                                 @NonNull UserListFlowListener<C, U> flowListener,
+                                 @NonNull GetUsers<U> getUsers,
+                                 @NonNull CreateConversation<C> createConversation) {
+        mView = view;
+        mFlowListener = flowListener;
         mGetUsers = getUsers;
         mCreateConversation = createConversation;
     }
@@ -39,36 +41,37 @@ public class UserListPresenterImpl extends BasePresenter<UserListPresenter.UserL
     @Override
     public void onCreate() {
         super.onCreate();
-        trackSubscription(mGetUsers.execute(NoParams.NONE)
+        trackSubscription(mGetUsers.execute()
+            .compose(ScheduleOn.io())
             .flatMap(Observable::from)
-            .map(user -> (BaseUser) user)
             .toList()
-            .subscribe(getView()::showUsers, this::onError));
+            .subscribe(mView::showUsers, this::onFatalError));
     }
 
+
     @Override
-    public void onUsersSelected(List<BaseUser> users) {
+    public void onUsersSelected(List<U> users) {
         if (users.isEmpty()) {
             return;
         }
         if (users.size() == 1) {
-            final Subscription createConversationSub = mCreateConversation.execute(users.get(0))
-                .map(conversation -> (BaseConversation) conversation)
+            final Subscription createConversationSub = mCreateConversation.execute(users.get(0).getUserId())
+                .compose(ScheduleOn.io())
                 .subscribe(
                     conversation -> {
-                        getFlowListener().requestOpenChat(conversation.getId());
+                        mFlowListener.requestOpenChat(conversation);
                     },
-                    this::onError);
+                    this::onFatalError);
             trackSubscription(createConversationSub);
         }
         else {
-            getFlowListener().requestCreateGroupChat(users);
+            mFlowListener.requestCreateGroupChat(users);
         }
     }
 
-    private void onError(Throwable throwable) {
-        Log.e(TAG, "Failed to load data", throwable);
-        getView().showGenericError();
+    private void onFatalError(Throwable throwable) {
+        Log.e(TAG, "Fatal error", throwable);
+        mView.showError(true, throwable);
     }
 
 }

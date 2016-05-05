@@ -1,15 +1,17 @@
 package com.badoo.chateau.example.ui.conversations.create.namegroup;
 
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.badoo.chateau.example.BaseTestCase;
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.data.models.BaseUser;
+import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.ui.Injector;
-import com.badoo.chateau.core.model.User;
 import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenter;
+import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenter.NameGroupFlowListener;
+import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenter.NameGroupView;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +39,7 @@ public class NameGroupActivityTest extends BaseTestCase<NameGroupActivity> {
 
     @Override
     protected Intent getActivityIntent() {
-        List<BaseUser> users = Collections.singletonList(new BaseUser("", ""));
+        List<String> users = Collections.singletonList("");
         return NameGroupActivity.create(InstrumentationRegistry.getContext(), users);
     }
 
@@ -45,9 +47,8 @@ public class NameGroupActivityTest extends BaseTestCase<NameGroupActivity> {
     protected void beforeActivityLaunched() {
         mPresenter = mock(NameGroupPresenter.class);
         Injector.register(NameGroupActivity.class, new NameGroupActivity.DefaultConfiguration() {
-
             @Override
-            protected NameGroupPresenter createPresenter(List<String> userIds) {
+            protected NameGroupPresenter createNameGroupPresenter(@NonNull NameGroupView nameGroupView, @NonNull NameGroupFlowListener<ExampleConversation> flowListener, List<String> userIds) {
                 return mPresenter;
             }
         });

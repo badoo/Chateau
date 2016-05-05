@@ -4,22 +4,21 @@ import android.app.Application;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
-import com.badoo.barf.data.repo.Repositories;
+import com.badoo.barf.data.repo.DelegatingRepository;
+import com.badoo.barf.data.repo.Repository;
 import com.badoo.barf.data.repo.annotations.HandlesUtil;
-import com.badoo.chateau.Broadcaster;
-import com.badoo.chateau.core.repos.conversations.ConversationRepository;
-import com.badoo.chateau.core.repos.istyping.IsTypingRepository;
-import com.badoo.chateau.core.repos.messages.MessageRepository;
-import com.badoo.chateau.core.repos.users.UserRepository;
-import com.badoo.chateau.data.repos.session.SessionRepository;
-import com.badoo.chateau.example.ui.util.BackgroundListenerRegistrar;
+import com.badoo.chateau.example.data.model.ExampleConversation;
+import com.badoo.chateau.example.data.model.ExampleMessage;
+import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.chateau.example.data.repos.conversations.ParseConversationDataSource;
 import com.badoo.chateau.example.data.repos.istyping.ParseIsTypingDataSource;
+import com.badoo.chateau.example.data.repos.messages.ExampleMessageMemoryDataSource;
 import com.badoo.chateau.example.data.repos.messages.ImageUploadService;
 import com.badoo.chateau.example.data.repos.messages.ParseMessageDataSource;
 import com.badoo.chateau.example.data.repos.session.ParseSessionDataSource;
 import com.badoo.chateau.example.data.repos.user.ParseUserDataSource;
 import com.badoo.chateau.example.data.util.ParseHelper;
+import com.badoo.chateau.example.ui.ExampleConfiguration;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.chat.ChatActivity;
 import com.badoo.chateau.example.ui.conversations.create.namegroup.NameGroupActivity;
@@ -27,6 +26,7 @@ import com.badoo.chateau.example.ui.conversations.create.selectusers.SelectUserA
 import com.badoo.chateau.example.ui.conversations.list.ConversationListActivity;
 import com.badoo.chateau.example.ui.session.login.LoginActivity;
 import com.badoo.chateau.example.ui.session.register.RegisterActivity;
+import com.badoo.chateau.example.ui.util.BackgroundListenerRegistrar;
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.imagepipeline.core.ImagePipelineConfig;
 import com.parse.Parse;
@@ -89,27 +89,35 @@ public class ChatExampleApp extends Application {
 
         // Fresco
         final ImagePipelineConfig config = ImagePipelineConfig.newBuilder(getApplicationContext())
-                .setDownsampleEnabled(true)
-                .setWebpSupportEnabled(true)
-                .build();
+            .setDownsampleEnabled(true)
+            .setWebpSupportEnabled(true)
+            .build();
         Fresco.initialize(getApplicationContext(), config);
 
-        // Repos
-        Repositories.registerRepo(SessionRepository.KEY, new SessionRepository(new ParseSessionDataSource(broadcaster, ParseHelper.INSTANCE)));
-
-        Repositories.registerRepo(ConversationRepository.KEY, createConversationsRepo());
-        Repositories.registerRepo(UserRepository.KEY, createUserRepository());
-        Repositories.registerRepo(MessageRepository.KEY, createMessageRepo());
-
-        final IsTypingRepository typingRepository = new IsTypingRepository();
-        HandlesUtil.registerHandlersFromAnnotations(typingRepository, new ParseIsTypingDataSource(getApplicationContext()));
-        Repositories.registerRepo(IsTypingRepository.KEY, typingRepository);
+        // Register the repositories and their data sources
+        ExampleConfiguration.setSessionRepository(createSessionRepo(broadcaster));
+        ExampleConfiguration.setConversationRepository(createConversationsRepo());
+        ExampleConfiguration.setUsersRepository(createUserRepository());
+        ExampleConfiguration.setMessageRepository(createMessageRepo());
+        ExampleConfiguration.setIsTypingRepository(createIsTypingRepository());
 
         registerInjections();
     }
 
-    private ConversationRepository createConversationsRepo() {
-        final ConversationRepository conversationRepository = new ConversationRepository();
+    private Repository<ExampleUser> createIsTypingRepository() {
+        final DelegatingRepository<ExampleUser> typingRepository = new DelegatingRepository<>();
+        HandlesUtil.registerHandlersFromAnnotations(typingRepository, new ParseIsTypingDataSource(getApplicationContext(), ParseHelper.INSTANCE));
+        return typingRepository;
+    }
+
+    private Repository<ExampleUser> createSessionRepo(Broadcaster broadcaster) {
+        final DelegatingRepository<ExampleUser> repo = new DelegatingRepository<>();
+        HandlesUtil.registerHandlersFromAnnotations(repo, new ParseSessionDataSource(broadcaster, ParseHelper.INSTANCE));
+        return repo;
+    }
+
+    private Repository<ExampleConversation> createConversationsRepo() {
+        final DelegatingRepository<ExampleConversation> conversationRepository = new DelegatingRepository<>();
         final ParseConversationDataSource parseConversationDataSource = new ParseConversationDataSource(ParseHelper.INSTANCE);
 
         HandlesUtil.registerHandlersFromAnnotations(conversationRepository, parseConversationDataSource);
@@ -129,29 +137,30 @@ public class ChatExampleApp extends Application {
     }
 
     @NonNull
-    private UserRepository createUserRepository() {
-        final UserRepository userRepository = new UserRepository();
+    private Repository<ExampleUser> createUserRepository() {
+        final DelegatingRepository<ExampleUser> userRepository = new DelegatingRepository<>();
         HandlesUtil.registerHandlersFromAnnotations(userRepository, new ParseUserDataSource(ParseHelper.INSTANCE));
         return userRepository;
     }
 
-    private MessageRepository createMessageRepo() {
-        final MessageRepository messageRepository = new MessageRepository();
+    private Repository<ExampleMessage> createMessageRepo() {
+        final DelegatingRepository<ExampleMessage> messageRepository = new DelegatingRepository<>();
         final ParseMessageDataSource.ImageUploader imageUploader = (localId, uri) -> startService(ImageUploadService.createIntent(getApplicationContext(), localId, uri));
-        final ParseMessageDataSource parseMessageDataSource = new ParseMessageDataSource(imageUploader, ParseHelper.INSTANCE);
+        final ParseMessageDataSource networkDataSource = new ParseMessageDataSource(imageUploader, ParseHelper.INSTANCE);
+        final ExampleMessageMemoryDataSource messageMemoryDataSource = new ExampleMessageMemoryDataSource(networkDataSource);
 
-        HandlesUtil.registerHandlersFromAnnotations(messageRepository, parseMessageDataSource);
+        HandlesUtil.registerHandlersFromAnnotations(messageRepository, messageMemoryDataSource);
         Broadcaster.ConversationUpdatedReceiver pullLatestMessagesReceiver = new Broadcaster.ConversationUpdatedReceiver() {
 
             @Override
             public void onConversationUpdated(@NonNull String chatId, long timestamp) {
-                parseMessageDataSource.pullLatestMessages(chatId, timestamp);
+                networkDataSource.loadLatestMessages(chatId, timestamp);
 
             }
 
             @Override
             public void onImageUploaded(@NonNull String chatId, @NonNull String messageId) {
-                parseMessageDataSource.updateMessage(chatId, messageId);
+                networkDataSource.updateMessage(chatId, messageId);
             }
         };
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(pullLatestMessagesReceiver, Broadcaster.getConversationUpdatedFilter());

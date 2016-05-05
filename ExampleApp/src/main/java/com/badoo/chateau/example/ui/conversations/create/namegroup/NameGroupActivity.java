@@ -7,9 +7,12 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.view.MenuItem;
 
+import com.badoo.barf.mvp.PresenterFactory;
+import com.badoo.chateau.core.usecases.conversations.CreateGroupConversation;
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.data.models.BaseUser;
+import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.ui.BaseActivity;
+import com.badoo.chateau.example.ui.ExampleConfiguration;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.chat.ChatActivity;
 import com.badoo.chateau.example.ui.conversations.list.ConversationListActivity;
@@ -20,39 +23,37 @@ import com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenterImp
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.badoo.chateau.ui.conversations.create.namegroup.NameGroupPresenter.*;
+
 /**
  * Activity for selecting the name of a new group chat
  */
-public class NameGroupActivity extends BaseActivity implements NameGroupPresenter.NameGroupFlowListener {
+public class NameGroupActivity extends BaseActivity
+    implements NameGroupFlowListener<ExampleConversation> {
 
     /**
      * Entry point for NameGroupActivity
      *
-     * @param users the list of users to include in this group
+     * @param userIds the list of users to include in this group
      */
-    public static Intent create(Context context, List<BaseUser> users) {
+    public static Intent create(Context context, List<String> userIds) {
         final Intent intent = new Intent(context, NameGroupActivity.class);
-        ArrayList<String> userIds = new ArrayList<>();
-        for (BaseUser user : users) {
-            userIds.add(user.getUserId());
-        }
-        intent.putStringArrayListExtra(EXTRA_USER_IDS, userIds);
+        intent.putStringArrayListExtra(EXTRA_USER_IDS, new ArrayList<>(userIds));
         return intent;
     }
 
-    public static class DefaultConfiguration extends Injector.BaseConfiguration<NameGroupActivity> {
+    public static class DefaultConfiguration extends ExampleConfiguration<NameGroupActivity> {
 
         @Override
         public void inject(@NonNull NameGroupActivity target) {
             final List<String> userIds = new ArrayList<>(target.getIntent().getStringArrayListExtra(EXTRA_USER_IDS));
-            final NameGroupPresenter.NameGroupView view = new NameGroupViewImpl(ViewFinder.from(target));
-            final NameGroupPresenter presenter = createPresenter(userIds);
-            bind(view, presenter, target);
-            target.setNameGroupPresenter(presenter);
+            final PresenterFactory<NameGroupView, NameGroupPresenter> presenterFactory = new PresenterFactory<>(v -> createNameGroupPresenter(v, target, userIds));
+            new NameGroupViewImpl(ViewFinder.from(target), presenterFactory);
+            target.registerPresenter(presenterFactory.get());
         }
 
-        protected NameGroupPresenter createPresenter(final List<String> userIds) {
-            return new NameGroupPresenterImpl(userIds);
+        protected NameGroupPresenter createNameGroupPresenter(@NonNull NameGroupView nameGroupView, @NonNull NameGroupFlowListener<ExampleConversation> flowListener, List<String> userIds) {
+            return new NameGroupPresenterImpl<>(nameGroupView, flowListener, userIds, new CreateGroupConversation<>(getConversationRepo()));
         }
     }
 
@@ -70,11 +71,6 @@ public class NameGroupActivity extends BaseActivity implements NameGroupPresente
         Injector.inject(this);
     }
 
-
-    public void setNameGroupPresenter(NameGroupPresenter nameGroupPresenter) {
-        registerPresenter(nameGroupPresenter);
-    }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -87,10 +83,10 @@ public class NameGroupActivity extends BaseActivity implements NameGroupPresente
     }
 
     @Override
-    public void requestOpenChat(@NonNull String chatId) {
+    public void requestOpenChat(@NonNull ExampleConversation conversation) {
         final Intent startConversations = new Intent(this, ConversationListActivity.class);
         startConversations.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        final Intent startChat = ChatActivity.create(this, chatId, "");
+        final Intent startChat = ChatActivity.create(this, conversation.getId(), "");
         startActivities(new Intent[]{startConversations, startChat});
     }
 }

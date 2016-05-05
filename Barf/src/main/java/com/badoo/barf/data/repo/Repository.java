@@ -8,7 +8,7 @@ import rx.Observable;
  * A repository is a data store that can be used to both request and publish data.  The repository may or may not be able to retrieve data
  * from local and/or remote sources, but if so, it should follow the mode specified by the {@link Query#getMode()}.
  */
-public interface Repository<Q extends Query, R> {
+public interface Repository<DataType> {
 
     /**
      * Perform a query on the repository.
@@ -17,5 +17,5 @@ public interface Repository<Q extends Query, R> {
      * {@link Query#getMode()}.
      */
     @NonNull
-    Observable<R> query(@NonNull Q query);
+    <Result> Observable<Result> query(@NonNull Query<Result> query);
 }

@@ -1,43 +1,30 @@
 package com.badoo.chateau.core.usecases.conversations;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 
-import com.badoo.barf.usecase.RepoUseCase;
+import com.badoo.barf.data.repo.Repository;
+import com.badoo.barf.usecase.UseCase;
 import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationRepository;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries;
 
 import java.util.List;
 
 import rx.Observable;
 
-public class CreateGroupConversation extends RepoUseCase<CreateGroupConversation.CreateGroupConversationParams, Conversation, ConversationRepository> {
-    public CreateGroupConversation() {
-        super(ConversationRepository.KEY);
+/**
+ * User case for creating a conversation with multiple users (group chat). To create a conversation with a single user (group chat) use {@link CreateConversation}
+ */
+@UseCase
+public class CreateGroupConversation<C extends Conversation> {
+
+    private final Repository<C> mConversationRepository;
+
+    public CreateGroupConversation(Repository<C> conversationRepository) {
+        mConversationRepository = conversationRepository;
     }
 
-    @VisibleForTesting
-    protected CreateGroupConversation(ConversationRepository repository) {
-        super(repository);
-    }
-
-
-    @Override
-    protected Observable<Conversation> createObservable(CreateGroupConversationParams params) {
-        return getRepo().query(new ConversationQuery.CreateGroupConversationQuery(params.mUserIds, params.mName));
-    }
-
-    public static final class CreateGroupConversationParams {
-        @NonNull
-        final List<String> mUserIds;
-        @NonNull
-        final String mName;
-
-        public CreateGroupConversationParams(@NonNull List<String> userIds, @NonNull String name) {
-            mUserIds = userIds;
-            mName = name;
-        }
+    public Observable<C> execute(@NonNull List<String> userIds, @NonNull String name) {
+        return mConversationRepository.query(new ConversationQueries.CreateGroupConversationQuery<>(userIds, name));
     }
 }
 

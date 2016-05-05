@@ -1,6 +1,6 @@
 package com.badoo.chateau.example.data.repos.session;
 
-import com.badoo.chateau.Broadcaster;
+import com.badoo.chateau.example.Broadcaster;
 import com.badoo.chateau.data.models.BaseUser;
 import com.badoo.chateau.example.data.util.ParseHelper;
 import com.badoo.unittest.ModelTestHelper;
@@ -50,14 +50,13 @@ public class ParseSessionDataSourceTest extends BaseRxTestCase {
         when(mParseHelper.signIn(USER_NAME, PASSWORD)).thenReturn(Observable.just(currentUser));
 
         // When
-        TestSubscriber<BaseUser> testSubscriber = executeTarget(mTarget.signIn(USER_NAME, PASSWORD));
+        TestSubscriber<BaseUser> testSubscriber = executeTarget(mTarget.signIn(new SessionQuery.SignIn(USER_NAME, PASSWORD)));
 
         // Then
         assertThat(testSubscriber.getOnNextEvents().size(), is(1));
         BaseUser user = testSubscriber.getOnNextEvents().get(0);
         assertEquals(USER_ID, user.getUserId());
         testSubscriber.assertCompleted();
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
         verify(mBroadcaster).userSignedIn();
     }
 
@@ -68,14 +67,13 @@ public class ParseSessionDataSourceTest extends BaseRxTestCase {
         when(mParseHelper.signUp(eq(USER_NAME), eq(PASSWORD), any())).thenReturn(Observable.just(currentUser));
 
         // When
-        TestSubscriber<BaseUser> testSubscriber = executeTarget(mTarget.register(USER_NAME, DISPLAY_NAME, PASSWORD));
+        TestSubscriber<BaseUser> testSubscriber = executeTarget(mTarget.register(new SessionQuery.Register(USER_NAME, DISPLAY_NAME, PASSWORD)));
 
         // Then
         assertThat(testSubscriber.getOnNextEvents().size(), is(1));
         BaseUser user = testSubscriber.getOnNextEvents().get(0);
         assertEquals(USER_ID, user.getUserId());
         testSubscriber.assertCompleted();
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
         verify(mBroadcaster).userSignedIn();
     }
 
@@ -89,7 +87,6 @@ public class ParseSessionDataSourceTest extends BaseRxTestCase {
 
         // Then
         testSubscriber.assertCompleted();
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
         verify(mBroadcaster).userSignedOut();
     }
 

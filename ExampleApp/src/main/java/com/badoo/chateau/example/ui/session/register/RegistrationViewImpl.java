@@ -6,7 +6,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.widget.ContentLoadingProgressBar;
@@ -14,11 +14,13 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 
-import com.badoo.barf.mvp.BaseView;
+import com.badoo.barf.mvp.MvpView;
+import com.badoo.barf.mvp.PresenterFactory;
 import com.badoo.chateau.example.R;
+import com.badoo.chateau.example.ui.session.register.RegistrationPresenter.RegistrationView;
 import com.badoo.chateau.extras.ViewFinder;
 
-class RegistrationViewImpl extends BaseView<RegistrationPresenter> implements RegistrationView, View.OnClickListener {
+class RegistrationViewImpl implements RegistrationView, View.OnClickListener, MvpView {
 
     private final TextInputLayout mUserName;
     private final TextInputLayout mDisplayName;
@@ -27,10 +29,14 @@ class RegistrationViewImpl extends BaseView<RegistrationPresenter> implements Re
     private final View mParent;
     private final View mRegisterFormView;
     private final ContentLoadingProgressBar mProgressView;
+    @NonNull
+    private final RegistrationPresenter mPresenter;
 
     private int mShortAnimTime;
 
-    public RegistrationViewImpl( @NonNull ViewFinder viewFinder) {
+    public RegistrationViewImpl(@NonNull ViewFinder viewFinder,
+                                @NonNull PresenterFactory<RegistrationView, RegistrationPresenter> presenterFactory) {
+        mPresenter = presenterFactory.init(this);
         mUserName = viewFinder.findViewById(R.id.register_username);
         mDisplayName = viewFinder.findViewById(R.id.register_displayName);
         mPassword = viewFinder.findViewById(R.id.register_password);
@@ -64,8 +70,10 @@ class RegistrationViewImpl extends BaseView<RegistrationPresenter> implements Re
     }
 
     @Override
-    public void showGenericError(@StringRes int errorMessage) {
-        Snackbar.make(mParent, errorMessage, Snackbar.LENGTH_LONG).show();
+    public void showError(boolean fatal, @Nullable Throwable throwable) {
+        if (fatal) {
+            Snackbar.make(mParent, mParent.getResources().getString(R.string.error_registration), Snackbar.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -127,8 +135,8 @@ class RegistrationViewImpl extends BaseView<RegistrationPresenter> implements Re
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.register_register_button) {
-            getPresenter().onRegister(
-                mUserName.getEditText().getText().toString(),
+            mPresenter.onRegister(
+                mUserName.getEditText().getText().toString().trim(),
                 mDisplayName.getEditText().getText().toString(),
                 mPassword.getEditText().getText().toString());
             Context context = v.getContext();
@@ -136,7 +144,7 @@ class RegistrationViewImpl extends BaseView<RegistrationPresenter> implements Re
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
         }
         else if (v.getId() == R.id.register_already_registered_button) {
-            getPresenter().onAlreadyRegistered();
+            mPresenter.onAlreadyRegistered();
         }
     }
 }

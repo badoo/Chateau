@@ -1,30 +1,28 @@
 package com.badoo.chateau.core.usecases.conversations;
 
-import android.support.annotation.VisibleForTesting;
+import android.support.annotation.NonNull;
 
-import com.badoo.barf.usecase.RepoUseCase;
+import com.badoo.barf.data.repo.Repository;
+import com.badoo.barf.usecase.UseCase;
 import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationRepository;
-import com.badoo.chateau.core.usecases.messages.ChatParams;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries;
 
 import rx.Observable;
 
+/**
+ * Use case for marking a conversation as read
+ */
+@UseCase
+public class MarkConversationRead {
 
-public class MarkConversationRead extends RepoUseCase<ChatParams, Conversation, ConversationRepository> {
-    public MarkConversationRead() {
-        super(ConversationRepository.KEY);
+    private final Repository<? extends Conversation> mConversationRepository;
+
+    public MarkConversationRead(Repository<? extends Conversation> conversationRepository) {
+        mConversationRepository = conversationRepository;
     }
 
-    @VisibleForTesting
-    protected MarkConversationRead(ConversationRepository repository) {
-        super(repository);
-    }
-
-
-    @Override
-    protected Observable<Conversation> createObservable(ChatParams params) {
-        return getRepo().query(new ConversationQuery.MarkConversationReadQuery(params.mChatId));
+    public Observable<Void> execute(@NonNull String conversationId) {
+        return mConversationRepository.query(new ConversationQueries.MarkConversationReadQuery(conversationId));
     }
 }
 

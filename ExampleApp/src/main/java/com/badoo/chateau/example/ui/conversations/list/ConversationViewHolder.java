@@ -7,10 +7,10 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.data.models.BaseConversation;
-import com.badoo.chateau.data.models.BaseMessage;
 import com.badoo.chateau.data.models.payloads.ImagePayload;
 import com.badoo.chateau.data.models.payloads.TextPayload;
+import com.badoo.chateau.example.data.model.ExampleConversation;
+import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.chateau.example.ui.util.BindableViewHolder;
 import com.badoo.chateau.extras.MultiSelectionHelper;
 import com.badoo.chateau.extras.ViewFinder;
@@ -18,7 +18,7 @@ import com.badoo.chateau.extras.ViewFinder;
 import java.text.DateFormat;
 import java.util.Date;
 
-class ConversationViewHolder extends BindableViewHolder<BaseConversation> implements View.OnClickListener, View.OnLongClickListener {
+class ConversationViewHolder extends BindableViewHolder<ExampleConversation> implements View.OnClickListener, View.OnLongClickListener {
 
     public static final String CAMERA_EMOJI = "\uD83D\uDCF7";
 
@@ -52,12 +52,12 @@ class ConversationViewHolder extends BindableViewHolder<BaseConversation> implem
     }
 
     @Override
-    public void bind(BaseConversation conversation) {
+    public void bind(ExampleConversation conversation) {
         super.bind(conversation);
         mRoot.setSelected(mSelectionHelper.isPositionSelected(getAdapterPosition()));
         mName.setText(conversation.getName());
 
-        final BaseMessage lastMessage = (BaseMessage) conversation.getLastMessage();
+        final ExampleMessage lastMessage = conversation.getLastMessage();
         if (lastMessage != null) {
             handlePayloadRendering(lastMessage);
             handleTimestampRendering(lastMessage);
@@ -76,7 +76,7 @@ class ConversationViewHolder extends BindableViewHolder<BaseConversation> implem
         }
     }
 
-    private void handleTimestampRendering(BaseMessage lastMessage) {
+    private void handleTimestampRendering(ExampleMessage lastMessage) {
         final boolean isToday = DateUtils.isToday(lastMessage.getTimestamp());
         final Date date = new Date(lastMessage.getTimestamp());
         if (isToday) {
@@ -87,7 +87,7 @@ class ConversationViewHolder extends BindableViewHolder<BaseConversation> implem
         }
     }
 
-    private void handlePayloadRendering(BaseMessage lastMessage) {
+    private void handlePayloadRendering(ExampleMessage lastMessage) {
         if (lastMessage.getPayload() instanceof TextPayload) {
             mLastMessage.setText(((TextPayload) lastMessage.getPayload()).getMessage());
         }
@@ -120,6 +120,6 @@ class ConversationViewHolder extends BindableViewHolder<BaseConversation> implem
 
     public interface OnConversationClickedListener {
 
-        void onConversationClicked(@NonNull BaseConversation conversation);
+        void onConversationClicked(@NonNull ExampleConversation conversation);
     }
 }

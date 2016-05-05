@@ -1,65 +1,51 @@
 package com.badoo.chateau.core.usecases.conversations;
 
-import com.badoo.chateau.data.models.BaseConversation;
+import com.badoo.barf.data.repo.Repository;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries;
 import com.badoo.chateau.data.models.BaseUser;
-import com.badoo.chateau.core.model.Message;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationRepository;
+import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.unittest.rx.BaseRxTestCase;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 
 import rx.Observable;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class CreateConversationTest extends BaseRxTestCase {
 
-    private ConversationRepository mMockRepository;
-    private CreateConversation mTarget;
+    @Mock
+    private Repository<ExampleConversation> mMockRepository;
+    private CreateConversation<ExampleConversation> mTarget;
 
     @Before
     public void beforeTest() {
         super.beforeTest();
-        mMockRepository = mock(ConversationRepository.class);
-        mTarget = new CreateConversation(mMockRepository);
+        mTarget = new CreateConversation<>(mMockRepository);
     }
 
     @Test
     public void whenMessagesForChatRequested_thenRepoIsQueriedForCorrectChatId() throws Exception {
         // Setup
         final BaseUser user = new BaseUser("id", "displayName");
-        final BaseConversation conversation = new BaseConversation("id", "name", Collections.emptyList(), new Message() {}, 0);
-        when(mMockRepository.query(eq(new ConversationQuery.CreateConversationQuery(user))))
+        final ExampleConversation conversation = new ExampleConversation("id", "name", Collections.emptyList(), null, 0);
+        when(mMockRepository.query(eq(new ConversationQueries.CreateConversationQuery<>(user.getUserId()))))
             .thenReturn(Observable.just(conversation));
 
         // Execute
-        mTarget.execute(user);
+        mTarget.execute(user.getUserId());
 
         // Assert
-        verify(mMockRepository, times(1)).query(eq(new ConversationQuery.CreateConversationQuery(user)));
+        verify(mMockRepository, times(1)).query(eq(new ConversationQueries.CreateConversationQuery<>(user.getUserId())));
     }
-
-    @Test
-    public void thatResultIsReturnedOnMainThread() throws Exception {
-        // Setup
-        final BaseUser user = new BaseUser("id", "displayName");
-        final BaseConversation conversation = new BaseConversation("id", "name", Collections.emptyList(), new Message() {}, 0);
-        when(mMockRepository.query(eq(new ConversationQuery.CreateConversationQuery(user))))
-            .thenReturn(Observable.just(conversation));
-
-        // Execute & Assert
-        mTarget.execute(user)
-            .doOnNext(__ -> assertTrue("Result not returned on main thread", getSchedulerFactory().isOnMainScheduler(Thread.currentThread())))
-            .subscribe();
-    }
-
 }

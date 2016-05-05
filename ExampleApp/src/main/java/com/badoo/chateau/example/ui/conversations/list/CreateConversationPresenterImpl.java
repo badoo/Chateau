@@ -1,17 +1,23 @@
 package com.badoo.chateau.example.ui.conversations.list;
 
-import com.badoo.barf.mvp.BasePresenter;
-import com.badoo.chateau.example.ui.conversations.list.CreateConversationPresenter.CreateConversationFlowListener;
-import com.badoo.chateau.example.ui.conversations.list.CreateConversationPresenter.CreateConversationView;
+import android.support.annotation.NonNull;
+
+import com.badoo.barf.mvp.BaseRxPresenter;
 
 /**
  * Implementation of CreateConversationPresenter which delegates the operation to the flow listener
  */
-public class CreateConversationPresenterImpl extends BasePresenter<CreateConversationView, CreateConversationFlowListener> implements CreateConversationPresenter {
+class CreateConversationPresenterImpl extends BaseRxPresenter implements CreateConversationPresenter {
+
+    private CreateConversationFlowListener mFlowListener;
+
+    CreateConversationPresenterImpl(@NonNull CreateConversationFlowListener flowListener) {
+        mFlowListener = flowListener;
+    }
 
     @Override
     public void onCreateNewConversationClicked() {
-        getFlowListener().requestCreateNewConversation();
+        mFlowListener.requestCreateNewConversation();
     }
 
 }

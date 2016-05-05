@@ -6,7 +6,7 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
+import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.widget.ContentLoadingProgressBar;
@@ -14,11 +14,13 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 
-import com.badoo.barf.mvp.BaseView;
+import com.badoo.barf.mvp.MvpView;
+import com.badoo.barf.mvp.PresenterFactory;
 import com.badoo.chateau.example.R;
+import com.badoo.chateau.example.ui.session.login.LoginPresenter.LoginView;
 import com.badoo.chateau.extras.ViewFinder;
 
-class LoginViewImpl extends BaseView<LoginPresenter> implements LoginView, View.OnClickListener {
+class LoginViewImpl implements LoginView, View.OnClickListener, MvpView {
 
     private final TextInputLayout mUserName;
     private final TextInputLayout mPassword;
@@ -28,8 +30,11 @@ class LoginViewImpl extends BaseView<LoginPresenter> implements LoginView, View.
     private final ContentLoadingProgressBar mProgressView;
 
     private int mShortAnimTime;
+    private LoginPresenter mPresenter;
 
-    public LoginViewImpl(@NonNull ViewFinder viewFinder) {
+    public LoginViewImpl(@NonNull ViewFinder viewFinder,
+                         @NonNull PresenterFactory<LoginView, LoginPresenter> presenterFactory) {
+        mPresenter = presenterFactory.init(this);
         mUserName = viewFinder.findViewById(R.id.login_username);
         mPassword = viewFinder.findViewById(R.id.login_password);
 
@@ -57,8 +62,10 @@ class LoginViewImpl extends BaseView<LoginPresenter> implements LoginView, View.
     }
 
     @Override
-    public void showGenericError(@StringRes int errorMessage) {
-        Snackbar.make(mParent, errorMessage, Snackbar.LENGTH_LONG).show();
+    public void showError(boolean fatal, @Nullable Throwable throwable) {
+        if (fatal) {
+            Snackbar.make(mParent, mParent.getResources().getString(R.string.error_login), Snackbar.LENGTH_LONG).show();
+        }
     }
 
     @Override
@@ -119,15 +126,15 @@ class LoginViewImpl extends BaseView<LoginPresenter> implements LoginView, View.
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.login_sign_in_button) {
-            getPresenter().onSignIn(
-                mUserName.getEditText().getText().toString(),
+            mPresenter.onSignIn(
+                mUserName.getEditText().getText().toString().trim(),
                 mPassword.getEditText().getText().toString());
             Context context = v.getContext();
             InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
         }
         else if (v.getId() == R.id.login_not_registered_button) {
-            getPresenter().onNotRegistered();
+            mPresenter.onNotRegistered();
         }
     }
 }

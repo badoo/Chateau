@@ -1,8 +1,7 @@
 package com.badoo.chateau.example.ui.conversations.list;
 
-import com.badoo.chateau.data.models.BaseConversation;
-import com.badoo.chateau.data.models.BaseMessage;
-import com.badoo.chateau.core.model.Message;
+import com.badoo.chateau.example.data.model.ExampleConversation;
+import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.chateau.ui.conversations.list.ConversationByLastMessageComparator;
 
 import org.junit.Before;
@@ -10,7 +9,7 @@ import org.junit.Test;
 
 import java.util.Collections;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class ConversationByLastMessageComparatorTest {
 
@@ -51,12 +50,12 @@ public class ConversationByLastMessageComparatorTest {
         assertEquals(-1, result);
     }
 
-    private BaseConversation createEmptyConversation() {
-        return new BaseConversation("id", "", Collections.emptyList(), null, 0);
+    private ExampleConversation createEmptyConversation() {
+        return new ExampleConversation("id", "", Collections.emptyList(), null, 0);
     }
 
-    private BaseConversation createConversation(long lastMessageTimestamp) {
-        Message lastMessage = BaseMessage.createTimestamp(lastMessageTimestamp);
-        return new BaseConversation("id" + lastMessageTimestamp, "", Collections.emptyList(), lastMessage, 0);
+    private ExampleConversation createConversation(long lastMessageTimestamp) {
+        ExampleMessage lastMessage = ExampleMessage.createTimestamp(lastMessageTimestamp);
+        return new ExampleConversation("id" + lastMessageTimestamp, "", Collections.emptyList(), lastMessage, 0);
     }
 }

@@ -2,9 +2,8 @@ package com.badoo.chateau.example.data.repos.session;
 
 import android.support.annotation.NonNull;
 
-import com.badoo.chateau.Broadcaster;
+import com.badoo.chateau.example.Broadcaster;
 import com.badoo.chateau.data.models.BaseUser;
-import com.badoo.chateau.data.repos.session.SessionDataSource;
 import com.badoo.chateau.example.data.util.ParseHelper;
 import com.badoo.chateau.example.data.util.ParseUtils;
 import com.badoo.chateau.example.data.util.ParseUtils.UsersTable;
@@ -28,8 +27,8 @@ public class ParseSessionDataSource implements SessionDataSource {
 
     @NonNull
     @Override
-    public Observable<BaseUser> signIn(@NonNull String username, @NonNull String password) {
-        return mParseHelper.signIn(username, password)
+    public Observable<BaseUser> signIn(@NonNull SessionQuery.SignIn query) {
+        return mParseHelper.signIn(query.getUserName(), query.getPassword())
             .map(ParseUtils::fromParseUser)
             .map(user -> ((BaseUser) user))
             .subscribeOn(Schedulers.io())
@@ -45,11 +44,11 @@ public class ParseSessionDataSource implements SessionDataSource {
 
     @NonNull
     @Override
-    public Observable<BaseUser> register(@NonNull String userName, @NonNull String displayName, @NonNull String password) {
+    public Observable<BaseUser> register(@NonNull SessionQuery.Register query) {
         final Map<String, Object> additionalParams = new HashMap<>();
-        additionalParams.put(UsersTable.Fields.DISPLAY_NAME, displayName);
+        additionalParams.put(UsersTable.Fields.DISPLAY_NAME, query.getDisplayName());
 
-        return mParseHelper.signUp(userName, password, additionalParams)
+        return mParseHelper.signUp(query.getUserName(), query.getPassword(), additionalParams)
             .map(ParseUtils::fromParseUser)
             .map(user -> ((BaseUser) user))
             .subscribeOn(Schedulers.io())

@@ -1,67 +1,50 @@
 package com.badoo.chateau.core.usecases.conversations;
 
-import com.badoo.chateau.data.models.BaseConversation;
-import com.badoo.chateau.core.model.Message;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationRepository;
+import com.badoo.barf.data.repo.Repository;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries;
+import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.unittest.rx.BaseRxTestCase;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.Collections;
 
 import rx.Observable;
 
-import static com.badoo.chateau.core.usecases.conversations.CreateGroupConversation.CreateGroupConversationParams;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class CreateGroupConversationTest extends BaseRxTestCase {
 
-    private ConversationRepository mMockRepository;
-    private CreateGroupConversation mTarget;
+    @Mock
+    private Repository<ExampleConversation> mMockRepository;
+    private CreateGroupConversation<ExampleConversation> mTarget;
 
     @Before
     public void beforeTest() {
         super.beforeTest();
-        mMockRepository = mock(ConversationRepository.class);
-        mTarget = new CreateGroupConversation(mMockRepository);
+        mTarget = new CreateGroupConversation<>(mMockRepository);
     }
 
     @Test
     public void whenMessagesForChatRequested_thenRepoIsQueriedForCorrectChatId() throws Exception {
         // Setup
         final String groupName = "groupName";
-        final CreateGroupConversationParams params = new CreateGroupConversationParams(Collections.emptyList(), groupName);
-        final BaseConversation conversation = new BaseConversation("id", "name", Collections.emptyList(), new Message() {}, 0);
-        when(mMockRepository.query(eq(new ConversationQuery.CreateGroupConversationQuery(Collections.emptyList(), groupName))))
+        final ExampleConversation conversation = new ExampleConversation("id", "name", Collections.emptyList(), null, 0);
+        when(mMockRepository.query(eq(new ConversationQueries.CreateGroupConversationQuery<>(Collections.emptyList(), groupName))))
             .thenReturn(Observable.just(conversation));
 
         // Execute
-        mTarget.execute(params);
+        mTarget.execute(Collections.emptyList(), groupName);
 
         // Assert
-        verify(mMockRepository, times(1)).query(eq(new ConversationQuery.CreateGroupConversationQuery(Collections.emptyList(), groupName)));
+        verify(mMockRepository, times(1)).query(eq(new ConversationQueries.CreateGroupConversationQuery<>(Collections.emptyList(), groupName)));
     }
-
-    @Test
-    public void thatResultIsReturnedOnMainThread() throws Exception {
-        // Setup
-        final String groupName = "groupName";
-        final CreateGroupConversationParams params = new CreateGroupConversationParams(Collections.emptyList(), groupName);
-        final BaseConversation conversation = new BaseConversation("id", "name", Collections.emptyList(), new Message() {}, 0);
-        when(mMockRepository.query(eq(new ConversationQuery.CreateGroupConversationQuery(Collections.emptyList(), groupName))))
-            .thenReturn(Observable.just(conversation));
-
-        // Execute & Assert
-        mTarget.execute(params)
-            .doOnNext(__ -> assertTrue("Result not returned on main thread", getSchedulerFactory().isOnMainScheduler(Thread.currentThread())))
-            .subscribe();
-    }
-
 }

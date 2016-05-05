@@ -1,20 +1,21 @@
 package com.badoo.chateau.example.ui.conversations.list;
 
-import com.badoo.barf.mvp.Presenter;
-import com.badoo.barf.mvp.View;
+import com.badoo.barf.mvp.FlowListener;
+import com.badoo.barf.mvp.MvpPresenter;
+import com.badoo.barf.mvp.MvpView;
 
 /**
  * Component presenter for handling creating new conversations (this is not handled by the base ConversationListPresenter as this is often
  * application dependent).
  */
-public interface CreateConversationPresenter extends Presenter<CreateConversationPresenter.CreateConversationView, CreateConversationPresenter.CreateConversationFlowListener> {
+interface CreateConversationPresenter extends MvpPresenter {
 
     /**
      * Called when a new conversation is requested.
      */
     void onCreateNewConversationClicked();
 
-    interface CreateConversationFlowListener extends Presenter.FlowListener {
+    interface CreateConversationFlowListener extends FlowListener {
 
         /**
          * Called when a new conversation is required.
@@ -22,7 +23,6 @@ public interface CreateConversationPresenter extends Presenter<CreateConversatio
         void requestCreateNewConversation();
     }
 
-    interface CreateConversationView extends View<CreateConversationPresenter> {
-
+    interface CreateConversationView extends MvpView {
     }
 }

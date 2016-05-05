@@ -9,10 +9,11 @@ import android.widget.TextView;
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.data.models.BaseMessage;
 import com.badoo.chateau.data.models.payloads.TextPayload;
-import com.badoo.chateau.example.ui.util.BaseMessageViewHolder;
+import com.badoo.chateau.example.data.model.ExampleMessage;
+import com.badoo.chateau.example.ui.util.MessageViewHolder;
 import com.badoo.chateau.example.ui.widgets.TintableBackgroundFrameLayout;
 
-public class TextMessageViewHolder extends BaseMessageViewHolder<TextPayload> {
+public class TextMessageViewHolder extends MessageViewHolder<TextPayload> {
 
     private final LinearLayout mRoot;
     private final TextView mMessageText;
@@ -28,7 +29,7 @@ public class TextMessageViewHolder extends BaseMessageViewHolder<TextPayload> {
     }
 
     @Override
-    protected void bindPayload(BaseMessage message, TextPayload payload) {
+    protected void bindPayload(ExampleMessage message, TextPayload payload) {
         mMessageText.setText((payload.getMessage()));
 
         final boolean fromMe = message.isFromMe();

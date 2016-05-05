@@ -2,11 +2,9 @@ package com.badoo.unittest;
 
 import android.support.annotation.NonNull;
 
-import com.badoo.chateau.data.models.BaseConversation;
-import com.badoo.chateau.data.models.BaseUser;
+import com.badoo.chateau.example.data.model.ExampleConversation;
+import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.chateau.example.data.util.ParseUtils;
-import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.model.User;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
 
@@ -19,10 +17,10 @@ import static org.mockito.Mockito.when;
 
 public class ModelTestHelper {
 
-    public static List<User> createUsers(int count) {
-        final List<User> users = new ArrayList<>(count);
+    public static List<ExampleUser> createUsers(int count) {
+        final List<ExampleUser> users = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
-            users.add(new BaseUser(Integer.toString(i), "User" + i));
+            users.add(new ExampleUser(Integer.toString(i), "User" + i));
         }
         return users;
     }
@@ -43,10 +41,10 @@ public class ModelTestHelper {
         return user;
     }
 
-    public static List<Conversation> createConversations(int count) {
-        final List<Conversation> conversations = new ArrayList<>();
+    public static List<ExampleConversation> createConversations(int count) {
+        final List<ExampleConversation> conversations = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            conversations.add(new BaseConversation(Integer.toString(i)
+            conversations.add(new ExampleConversation(Integer.toString(i)
                 , "Convo" + i, Collections.emptyList(), null, 0));
         }
         return conversations;

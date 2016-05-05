@@ -10,18 +10,18 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.badoo.chateau.data.models.BaseMessage;
 import com.badoo.chateau.data.models.payloads.ImagePayload;
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.example.ui.util.BaseMessageViewHolder;
+import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.chateau.example.ui.util.ImageLoadingDrawable;
+import com.badoo.chateau.example.ui.util.MessageViewHolder;
 import com.badoo.chateau.example.ui.widgets.TintableBackgroundLinearLayout;
 import com.facebook.drawee.drawable.ScalingUtils;
 import com.facebook.drawee.generic.GenericDraweeHierarchy;
 import com.facebook.drawee.generic.GenericDraweeHierarchyBuilder;
 import com.facebook.drawee.view.SimpleDraweeView;
 
-public class ImageMessageViewHolder extends BaseMessageViewHolder<ImagePayload> {
+public class ImageMessageViewHolder extends MessageViewHolder<ImagePayload> {
 
     private final LinearLayout mRoot;
     private final TextView mMessageText;
@@ -51,7 +51,7 @@ public class ImageMessageViewHolder extends BaseMessageViewHolder<ImagePayload> 
     }
 
     @Override
-    protected void bindPayload(BaseMessage message, ImagePayload payload) {
+    protected void bindPayload(ExampleMessage message, ImagePayload payload) {
         mMessageText.setVisibility(TextUtils.isEmpty(payload.getMessage()) ? View.GONE : View.VISIBLE);
         mMessageText.setText((payload.getMessage()));
 

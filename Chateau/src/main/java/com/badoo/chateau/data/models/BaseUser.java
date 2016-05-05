@@ -2,6 +2,9 @@ package com.badoo.chateau.data.models;
 
 import com.badoo.chateau.core.model.User;
 
+/**
+ * Use model containing fields common to users
+ */
 public class BaseUser implements User {
 
     private final String mUserId;
@@ -39,4 +42,11 @@ public class BaseUser implements User {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "BaseUser{" +
+            "mUserId='" + mUserId + '\'' +
+            ", mDisplayName='" + mDisplayName + '\'' +
+            '}';
+    }
 }

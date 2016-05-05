@@ -5,18 +5,19 @@ import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
+import com.badoo.chateau.core.repos.messages.MessageDataSource;
+import com.badoo.chateau.core.repos.messages.MessageQueries.LoadMessagesQuery;
+import com.badoo.chateau.core.repos.messages.MessageQueries.SendMessageQuery;
+import com.badoo.chateau.core.repos.messages.MessageQueries.SubscribeToMessagesQuery;
 import com.badoo.chateau.data.models.BaseMessage;
 import com.badoo.chateau.data.models.payloads.ImagePayload;
 import com.badoo.chateau.data.models.payloads.Payload;
 import com.badoo.chateau.data.models.payloads.TextPayload;
+import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.chateau.example.data.util.ParseHelper;
 import com.badoo.chateau.example.data.util.ParseUtils;
-import com.badoo.chateau.core.model.Message;
-import com.badoo.chateau.core.repos.messages.MessageDataSource;
-import com.badoo.chateau.core.repos.messages.MessageQuery;
-import com.badoo.chateau.core.repos.messages.MessageQuery.GetMessages;
-import com.badoo.chateau.core.repos.messages.MessageQuery.SendMessage;
-import com.badoo.chateau.core.repos.messages.MessageQuery.SubscribeToNewMessagesForConversation;
+import com.badoo.chateau.example.data.util.ParseUtils.ChatTable;
+import com.badoo.chateau.example.data.util.ParseUtils.MessagesTable;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 
@@ -31,18 +32,12 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.subjects.PublishSubject;
 
-import com.badoo.chateau.example.data.util.ParseUtils.ChatTable;
-import com.badoo.chateau.example.data.util.ParseUtils.MessagesTable;
+public class ParseMessageDataSource implements MessageDataSource<ExampleMessage> {
 
-public class ParseMessageDataSource implements MessageDataSource {
-
-    public final static int MAX_CHUNK_SIZE = 20;
-
-    @SuppressWarnings("unused")
     private static final String TAG = ParseMessageDataSource.class.getSimpleName();
+    private final static int MAX_CHUNK_SIZE = 20;
 
-    private final Map<String, PublishSubject<Message>> mNewMessagePublishers = new HashMap<>();
-    private final Map<String, PublishSubject<Message>> mUpdatedMessagePublishers = new HashMap<>();
+    private final Map<String, PublishSubject<List<ExampleMessage>>> mMessagePublishers = new HashMap<>();
 
     @NonNull
     private final ImageUploader mImageUploader;
@@ -66,80 +61,117 @@ public class ParseMessageDataSource implements MessageDataSource {
 
     @NonNull
     @Override
-    public Observable<Message> getMessages(@NonNull GetMessages getMessages) {
-        final ParseQuery<ParseObject> query = new ParseQuery<>(MessagesTable.NAME);
-        query.whereEqualTo(MessagesTable.Fields.CHAT, ParseObject.createWithoutData(ChatTable.NAME, getMessages.getChatId()));
-        query.addDescendingOrder(MessagesTable.Fields.CREATED_AT);
-        if (getMessages.getChunkBefore() != null) {
-            query.whereLessThan(MessagesTable.Fields.CREATED_AT, new Date(((BaseMessage) getMessages.getChunkBefore()).getTimestamp()));
+    public Observable<Boolean> loadMessages(@NonNull LoadMessagesQuery query) {
+        final ParseQuery<ParseObject> parseQuery = new ParseQuery<>(MessagesTable.NAME);
+        parseQuery.whereEqualTo(MessagesTable.Fields.CHAT, ParseObject.createWithoutData(ChatTable.NAME, query.getConversationId()));
+        parseQuery.addDescendingOrder(MessagesTable.Fields.CREATED_AT);
+        if (query.getChunkBefore() != null) {
+            parseQuery.whereLessThan(MessagesTable.Fields.CREATED_AT, new Date(((BaseMessage) query.getChunkBefore()).getTimestamp()));
         }
-        query.setLimit(MAX_CHUNK_SIZE);
+        parseQuery.setLimit(MAX_CHUNK_SIZE);
 
-        query.include(MessagesTable.Fields.IMAGE);
+        parseQuery.include(MessagesTable.Fields.IMAGE);
 
-        return mParseHelper.find(query)
+        return mParseHelper.find(parseQuery)
             .doOnNext(mSortMessagesAscending)
             .flatMap(Observable::from)
             .map(ParseUtils::baseMessageFromParseObject)
-            .doOnNext(message -> mLastMessageTimestamp = Math.max(mLastMessageTimestamp, ((BaseMessage) message).getTimestamp()));
-    }
-
-    @NonNull
-    @Override
-    public Observable<Message> subscribeToNewMessage(@NonNull SubscribeToNewMessagesForConversation query) {
-        return getNewMessagePublisher(query.getChatId());
-    }
-
-    @NonNull
-    @Override
-    public Observable<Message> subscribeToUpdatedMessage(@NonNull MessageQuery.GetUpdatedMessagesForConversation query) {
-        return getUpdatedMessagePublisher(query.getChatId());
+            .toList()
+            .doOnNext(messages -> publishMessages(query.getConversationId(), messages))
+            .map(messages -> messages.size() == MAX_CHUNK_SIZE);
     }
 
     @Override
-    public void sendMessage(@NonNull SendMessage sendMessage) {
+    public Observable<Void> sendMessage(@NonNull SendMessageQuery query) {
         final ParseObject msg = ParseObject.create(MessagesTable.NAME);
-        final BaseMessage message = (BaseMessage) sendMessage.getMessage();
-        final Payload payload = message.getPayload();
         final String localId = generateLocalId();
 
-        final String chatId = sendMessage.getChatId();
+        final String conversationId = query.getConversationId();
         final Action0 onSuccess;
-        if (payload instanceof TextPayload) {
-            onSuccess = handleTextPayload(msg, (TextPayload) payload, chatId);
+        Payload payload; // Payload used locally until we get a message back from the server
+        if (query.getMessage() != null) {
+            onSuccess = handleTextPayload(msg, query.getMessage(), conversationId);
+            payload = new TextPayload(query.getMessage());
         }
-        else if (payload instanceof ImagePayload) {
-            onSuccess = handleImagePayload(msg, (ImagePayload) payload, localId);
+        else if (query.getMediaUri() != null) {
+            onSuccess = handleImagePayload(msg, query.getMediaUri(), localId);
+            payload = new ImagePayload(query.getMediaUri().toString());
         }
         else {
-            throw new IllegalArgumentException("Unsupported message type: " + message);
+            throw new IllegalArgumentException("Unsupported message: " + query);
         }
 
-        msg.put(MessagesTable.Fields.CHAT, ParseObject.createWithoutData(ChatTable.NAME, chatId));
+        msg.put(MessagesTable.Fields.CHAT, ParseObject.createWithoutData(ChatTable.NAME, conversationId));
         // Need to ensure the message sent back has the generated local id so it can be matched with responses form the server
         msg.put(MessagesTable.Fields.LOCAL_ID, localId);
         // Give it a timestamp that ensured that it ends up last (this will be replaced by the real server side timestamp)
         mLastMessageTimestamp = Math.max(System.currentTimeMillis(), mLastMessageTimestamp + 1);
 
-        final BaseMessage unconfirmedMessage = BaseMessage.createUnconfirmedMessage(localId, mParseHelper.getCurrentUser().getObjectId(), message.getPayload(), mLastMessageTimestamp);
-        getNewMessagePublisher(chatId).onNext(unconfirmedMessage);
+        final ExampleMessage unconfirmedMessage = ExampleMessage.createUnconfirmedMessage(localId, mParseHelper.getCurrentUser().getObjectId(), payload, mLastMessageTimestamp);
+        getMessagePublisher(conversationId).onNext(Collections.singletonList(unconfirmedMessage));
 
-        uploadMessage(msg, onSuccess, e -> getNewMessagePublisher(chatId).onNext(BaseMessage.createFailedMessage(unconfirmedMessage)));
+        uploadMessage(msg, onSuccess, e -> getMessagePublisher(conversationId).onNext(Collections.singletonList(ExampleMessage.createFailedMessage(unconfirmedMessage))));
+        return Observable.empty();
     }
 
+    /**
+     * Request the latest messages in a conversation to be loaded.
+     */
+    public void loadLatestMessages(String conversationId, long newMessageTimestamp) {
+        ParseQuery<ParseObject> query = new ParseQuery<>(MessagesTable.NAME);
+        query.whereEqualTo(MessagesTable.Fields.CHAT, ParseObject.createWithoutData(ChatTable.NAME, conversationId));
+        query.addDescendingOrder(MessagesTable.Fields.CREATED_AT);
+        query.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
+        query.include(MessagesTable.Fields.IMAGE);
+        query.whereGreaterThanOrEqualTo(ParseUtils.GeneralFields.CREATED_AT, new Date(newMessageTimestamp));
+        Log.d(TAG, "Requesting new messages starting at " + newMessageTimestamp);
+
+        mParseHelper.find(query)
+            .doOnNext(mSortMessagesAscending)
+            .flatMap(Observable::from)
+            .map(ParseUtils::baseMessageFromParseObject)
+            .doOnNext(message -> mLastMessageTimestamp = Math.max(mLastMessageTimestamp, message.getTimestamp()))
+            .toList()
+            .subscribe(messages -> {
+                getMessagePublisher(conversationId).onNext(messages);
+            });
+    }
+
+    /**
+     * Request a single message in a conversation to be updated.
+     */
+    public void updateMessage(@NonNull String conversationId, @NonNull String messageId) {
+        ParseQuery<ParseObject> query = new ParseQuery<>(MessagesTable.NAME);
+        query.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
+        query.include(MessagesTable.Fields.IMAGE);
+        Log.d(TAG, "Updating message: " + messageId);
+
+        mParseHelper.get(query, messageId)
+            .map(ParseUtils::baseMessageFromParseObject)
+            .toList()
+            .subscribe(messages -> {
+                getMessagePublisher(conversationId).onNext(messages);
+            });
+    }
+
+    @NonNull
+    @Override
+    public Observable<List<ExampleMessage>> subscribeToMessages(@NonNull SubscribeToMessagesQuery<ExampleMessage> query) {
+        return getMessagePublisher(query.getConversationId());
+    }
 
     /**
      * Configure the parse object for a text payload an return the action to run on successful sending of the message
      */
     @NonNull
-    private Action0 handleTextPayload(@NonNull ParseObject msg, @NonNull TextPayload payload, @NonNull String chatId) {
+    private Action0 handleTextPayload(@NonNull ParseObject msg, @NonNull String payload, @NonNull String conversationId) {
         Action0 onSuccess;
         msg.put(MessagesTable.Fields.TYPE, MessagesTable.Types.TEXT);
-        msg.put(MessagesTable.Fields.MESSAGE, payload.getMessage());
+        msg.put(MessagesTable.Fields.MESSAGE, payload);
         onSuccess = () -> {
             mLastMessageTimestamp = Math.max(msg.getCreatedAt().getTime(), mLastMessageTimestamp);
             // Publish the real message back to the listening presenter layer after it is successfully saved (so that it can replace the temporary message)
-            getNewMessagePublisher(chatId).onNext(ParseUtils.baseMessageFromParseObject(msg));
+            getMessagePublisher(conversationId).onNext(Collections.singletonList(ParseUtils.baseMessageFromParseObject(msg)));
         };
         return onSuccess;
     }
@@ -148,16 +180,12 @@ public class ParseMessageDataSource implements MessageDataSource {
      * Configure the parse object for a image payload an return the action to run on successful sending of the message
      */
     @NonNull
-    private Action0 handleImagePayload(@NonNull ParseObject msg, @NonNull ImagePayload payload, @NonNull String localId) {
+    private Action0 handleImagePayload(@NonNull ParseObject msg, @NonNull Uri payload, @NonNull String localId) {
         Action0 onSuccess;
         msg.put(MessagesTable.Fields.TYPE, MessagesTable.Types.IMAGE);
-        if (payload.getMessage() != null) {
-            msg.put(MessagesTable.Fields.MESSAGE, payload.getMessage());
-        }
-        final Uri imageUri = Uri.parse(payload.getImageUrl());
         onSuccess = () -> {
             mLastMessageTimestamp = Math.max(msg.getCreatedAt().getTime(), mLastMessageTimestamp);
-            mImageUploader.uploadImage(localId, imageUri);
+            mImageUploader.uploadImage(localId, payload);
         };
         return onSuccess;
     }
@@ -178,50 +206,16 @@ public class ParseMessageDataSource implements MessageDataSource {
         return mParseHelper.getCurrentUser().getObjectId() + "-" + System.currentTimeMillis();
     }
 
-    public void pullLatestMessages(String chatId, long newMessageTimestamp) {
-        ParseQuery<ParseObject> query = new ParseQuery<>(MessagesTable.NAME);
-        query.whereEqualTo(MessagesTable.Fields.CHAT, ParseObject.createWithoutData(ChatTable.NAME, chatId));
-        query.addDescendingOrder(MessagesTable.Fields.CREATED_AT);
-        query.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
-        query.include(MessagesTable.Fields.IMAGE);
-        query.whereGreaterThanOrEqualTo(ParseUtils.GeneralFields.CREATED_AT, new Date(newMessageTimestamp));
-        Log.d(TAG, "Requesting new messages starting at " + newMessageTimestamp);
-
-        mParseHelper.find(query)
-            .doOnNext(mSortMessagesAscending)
-            .flatMap(Observable::from)
-            .map(ParseUtils::baseMessageFromParseObject)
-            .doOnNext(getNewMessagePublisher(chatId)::onNext)
-            .doOnNext(message -> mLastMessageTimestamp = Math.max(mLastMessageTimestamp, ((BaseMessage) message).getTimestamp()))
-            .subscribe();
+    private void publishMessages(String conversationId, List<ExampleMessage> messages) {
+        getMessagePublisher(conversationId).onNext(messages);
     }
 
-    public void updateMessage(@NonNull String chatId, @NonNull String messageId) {
-        ParseQuery<ParseObject> query = new ParseQuery<>(MessagesTable.NAME);
-        query.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ONLY);
-        query.include(MessagesTable.Fields.IMAGE);
-        Log.d(TAG, "Updating message: " + messageId);
-
-        mParseHelper.get(query, messageId)
-            .map(ParseUtils::baseMessageFromParseObject)
-            .doOnNext(getUpdatedMessagePublisher(chatId)::onNext)
-            .subscribe();
-    }
-
-    private PublishSubject<Message> getNewMessagePublisher(String chatId) {
-        if (!mNewMessagePublishers.containsKey(chatId)) {
-            PublishSubject<Message> publisher = PublishSubject.create();
-            mNewMessagePublishers.put(chatId, publisher);
+    private PublishSubject<List<ExampleMessage>> getMessagePublisher(String conversationId) {
+        if (!mMessagePublishers.containsKey(conversationId)) {
+            PublishSubject<List<ExampleMessage>> publisher = PublishSubject.create();
+            mMessagePublishers.put(conversationId, publisher);
         }
-        return mNewMessagePublishers.get(chatId);
-    }
-
-    private PublishSubject<Message> getUpdatedMessagePublisher(String chatId) {
-        if (!mUpdatedMessagePublishers.containsKey(chatId)) {
-            PublishSubject<Message> publisher = PublishSubject.create();
-            mUpdatedMessagePublishers.put(chatId, publisher);
-        }
-        return mUpdatedMessagePublishers.get(chatId);
+        return mMessagePublishers.get(conversationId);
     }
 
     public interface ImageUploader {

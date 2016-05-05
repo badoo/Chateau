@@ -1,31 +1,29 @@
 package com.badoo.chateau.core.usecases.users;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 
-import com.badoo.barf.usecase.RepoUseCase;
+import com.badoo.barf.data.repo.Repository;
 import com.badoo.barf.usecase.UseCase;
 import com.badoo.chateau.core.model.User;
-import com.badoo.chateau.core.repos.users.UserQuery;
-import com.badoo.chateau.core.repos.users.UserRepository;
+import com.badoo.chateau.core.repos.users.UserQueries;
 
 import java.util.List;
 
 import rx.Observable;
 
-public class GetUsers extends RepoUseCase<UseCase.NoParams, List<User>, UserRepository> {
+/**
+ * Use case for retrieving all users
+ */
+@UseCase
+public class GetUsers<U extends User> {
 
-    public GetUsers() {
-        super(UserRepository.KEY);
+    private final Repository<U> mRepository;
+
+    public GetUsers(@NonNull Repository<U> repository) {
+        mRepository = repository;
     }
 
-    @VisibleForTesting
-    protected GetUsers(@NonNull UserRepository repository) {
-        super(repository);
-    }
-
-    @Override
-    protected Observable<List<User>> createObservable(NoParams params) {
-        return getRepo().query(new UserQuery.GetAllUsersQuery()).toList();
+    public Observable<List<U>> execute() {
+        return mRepository.query(new UserQueries.GetAllUsersQuery<>());
     }
 }

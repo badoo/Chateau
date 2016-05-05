@@ -14,7 +14,7 @@ public final class TestUtils {
 
     /**
      * Fixes internal dependencies to android.database.Observable so that a RecyclerView.Adapter can be tested using regular unit tests while
-     * observing changes to the data set.
+     * observing changes to the data setIsTypingRepository.
      */
     public static RecyclerView.AdapterDataObserver fixAdapterForTesting(RecyclerView.Adapter adapter) throws NoSuchFieldException, IllegalAccessException {
         // Observables are not mocked by default so we need to hook the adapter up to an observer so we can track changes

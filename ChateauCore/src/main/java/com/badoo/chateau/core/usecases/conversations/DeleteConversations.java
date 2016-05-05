@@ -1,42 +1,30 @@
 package com.badoo.chateau.core.usecases.conversations;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 
-import com.badoo.barf.usecase.RepoUseCase;
+import com.badoo.barf.data.repo.Repository;
+import com.badoo.barf.usecase.UseCase;
 import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationRepository;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries;
 
 import java.util.List;
 
 import rx.Observable;
 
+/**
+ * User case for deleting an existing conversation (either with a single user or a group)
+ */
+@UseCase
+public class DeleteConversations {
 
-public class DeleteConversations extends RepoUseCase<DeleteConversations.DeleteConversationsParams, List<Conversation>, ConversationRepository> {
+    private final Repository<? extends Conversation> mConversationRepository;
 
-    public DeleteConversations() {
-        super(ConversationRepository.KEY);
+    public DeleteConversations(Repository<? extends Conversation> conversationRepository) {
+        mConversationRepository = conversationRepository;
     }
 
-    @VisibleForTesting
-    protected DeleteConversations(ConversationRepository repository) {
-        super(repository);
-    }
-
-    @Override
-    protected Observable<List<Conversation>> createObservable(DeleteConversationsParams params) {
-        return getRepo().query(new ConversationQuery.DeleteConversationsQuery(params.mConversations)).toList();
-    }
-
-    public static final class DeleteConversationsParams {
-
-        @NonNull
-        private final List<Conversation> mConversations;
-
-        public DeleteConversationsParams(@NonNull List<Conversation> conversations) {
-            mConversations = conversations;
-        }
+    public Observable<Void> execute(@NonNull List<Conversation> conversations) {
+        return mConversationRepository.query(new ConversationQueries.DeleteConversationsQuery<>(conversations));
     }
 }
 

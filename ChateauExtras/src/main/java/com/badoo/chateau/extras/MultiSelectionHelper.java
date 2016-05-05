@@ -8,6 +8,9 @@ import android.support.v7.widget.RecyclerView;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Helper for managing the selection state when performing multiple selection in a RecyclerView.
+ */
 public class MultiSelectionHelper {
 
     @IntDef({MODE_SINGLE_SELECT, MODE_MULTIPLE_SELECT})
@@ -33,12 +36,36 @@ public class MultiSelectionHelper {
         mSelectionChangedListener = selectionChangedListener;
     }
 
+    /**
+     * Switch to a different selection mode. Mode switches can also occur automatically if onLongClick() is called.
+     */
+    public void setMode(@Mode int mode) {
+        if (mMode == mode) {
+            return;
+        }
+        mMode = mode;
+        mModeChangedListener.onModeChanged(mode);
+    }
+
+    /**
+     * Returns the current selection mode
+     */
+    @MultiSelectionHelper.Mode
+    public int getMode() {
+        return mMode;
+    }
+
+    /**
+     * To be invoked when an item in the list is clicked (even when not in multi selection mode).
+     *
+     * @return true if the click was handled and nothing further should be done, false if it should be handled as a normal (not selection) click.
+     */
     public boolean onClick(int position) {
         if (mMode == MODE_MULTIPLE_SELECT) {
             if (mSelectedItems.contains(position)) {
                 mSelectedItems.remove(position);
                 if (mSelectedItems.isEmpty()) {
-                    switchTo(MODE_SINGLE_SELECT);
+                    setMode(MODE_SINGLE_SELECT);
                 }
             }
             else {
@@ -50,6 +77,46 @@ public class MultiSelectionHelper {
         return false;
     }
 
+    /**
+     * To be invoked when an item in the list is long-clicked (even when not in multi selection mode).
+     *
+     * @return true if the click was handled and nothing further should be done, false if it should be handled as a normal (not selection) click.
+     */
+    public boolean onLongClick(int position) {
+        if (mMode == MODE_SINGLE_SELECT) {
+            mSelectedItems.add(position);
+            notifySelectionChanged(position);
+            setMode(MODE_MULTIPLE_SELECT);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Clears the information about which items are selected. Should be called when we are done selecting items (e.g. if action is taken or selection is cancelled)
+     */
+    public void clearSelectedPositions() {
+        mSelectedItems.clear();
+        mAdapter.notifyDataSetChanged();
+        setMode(MODE_SINGLE_SELECT);
+    }
+
+
+    /**
+     * Returns whether or not a certain position is selection
+     */
+    public boolean isPositionSelected(int position) {
+        return mSelectedItems.contains(position);
+    }
+
+    /**
+     * Returns a set containing the positions of all selected items
+     */
+    @NonNull
+    public Set<Integer> getSelectedItems() {
+        return mSelectedItems;
+    }
+
     private void notifySelectionChanged(int position) {
         if (mSelectionChangedListener != null) {
             mSelectionChangedListener.onSelectionChanged(mSelectedItems.size());
@@ -57,49 +124,27 @@ public class MultiSelectionHelper {
         mAdapter.notifyItemChanged(position);
     }
 
-    public boolean onLongClick(int position) {
-        if (mMode == MODE_SINGLE_SELECT) {
-            mSelectedItems.add(position);
-            notifySelectionChanged(position);
-            switchTo(MODE_MULTIPLE_SELECT);
-            return true;
-        }
-        return false;
-    }
-
-    public void clearSelectedPositions() {
-        mSelectedItems.clear();
-        mAdapter.notifyDataSetChanged();
-        switchTo(MODE_SINGLE_SELECT);
-    }
-
-    public boolean isPositionSelected(int position) {
-        return mSelectedItems.contains(position);
-    }
-
-    public int getMode() {
-        return mMode;
-    }
-
-    public Set<Integer> getSelectedItems() {
-        return mSelectedItems;
-    }
-
-    public void switchTo(@Mode int mode) {
-        if (mMode == mode) return;
-
-        mMode = mode;
-        mModeChangedListener.onModeChanged(mode);
-    }
-
-
+    /**
+     * Callback interface for notifying when the selection mode changes
+     */
     public interface OnModeChangedListener {
 
+        /**
+         * Invoked when the selection mode changes
+         */
         void onModeChanged(@Mode int multiSelect);
     }
 
+    /**
+     * Callback interface for notifying when the selection changes
+     */
     public interface OnSelectionChangedListener {
 
+        /**
+         * Invoked when the number of selected items change
+         *
+         * @param count the number of selected items
+         */
         void onSelectionChanged(int count);
     }
 }

@@ -8,6 +8,10 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.Window;
 
+/**
+ * Helper that allows you to find a given view in a view hierarchy without having to deal with casting it to a specific type.
+ * Also provides a way to inject mock Views into a (MVP) View implementation.
+ */
 public abstract class ViewFinder {
 
     public static ViewFinder from(@NonNull final Activity activity) {
@@ -51,6 +55,13 @@ public abstract class ViewFinder {
         return view;
     }
 
+    /**
+     * Attempts to find a view for a give Id. Returning null if it's not found.
+     *
+     * @param viewId the id of the view to find.
+     * @param <T>    the implementation of view.
+     * @return the view if it is found.
+     */
     @Nullable
     public abstract <T extends View> T findOptionalViewById(@IdRes int viewId);
 

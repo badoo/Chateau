@@ -2,35 +2,37 @@ package com.badoo.chateau.example.ui.chat.input;
 
 import android.support.annotation.NonNull;
 
-import com.badoo.barf.mvp.BaseView;
+import com.badoo.barf.mvp.MvpView;
+import com.badoo.barf.mvp.PresenterFactory;
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.example.ui.widgets.ChatTextInputView;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenter;
 
-public class ChatInputViewImpl extends BaseView<ChatInputPresenter> implements ChatInputPresenter.ChatInputView {
+import static com.badoo.chateau.ui.chat.input.ChatInputPresenter.*;
+
+public class ChatInputViewImpl implements ChatInputView, MvpView {
 
     private final ChatTextInputView mInput;
+    @NonNull
+    private final ChatInputPresenter mPresenter;
 
-    public ChatInputViewImpl(@NonNull ViewFinder viewFinder) {
+    public ChatInputViewImpl(@NonNull ViewFinder viewFinder,
+                             @NonNull PresenterFactory<ChatInputView, ChatInputPresenter> presenterFactory) {
+        mPresenter = presenterFactory.init(this);
         mInput = viewFinder.findViewById(R.id.chat_input);
-        mInput.setOnSendClickListener(v -> {
-            getPresenter().onSendMessage(mInput.getText());
-        });
+        mInput.setOnSendClickListener(v -> mPresenter.onSendMessage(mInput.getText()));
         mInput.setOnActionItemClickedListener(item -> {
             if (item.getItemId() == R.id.action_attachPhoto) {
-                getPresenter().onPickImage();
+                mPresenter.onPickImage();
             }
             else if (item.getItemId() == R.id.action_takePhoto) {
-                getPresenter().onTakePhoto();
+                mPresenter.onTakePhoto();
             }
             return true;
         });
-    }
+        mInput.setOnTypingListener(mPresenter::onUserTyping);
 
-    @Override
-    protected void onPresenterAttached(@NonNull ChatInputPresenter presenter) {
-        mInput.setOnTypingListener(presenter::onUserTyping);
     }
 
     @Override

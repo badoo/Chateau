@@ -1,9 +1,9 @@
 package com.badoo.chateau.example.data.repos.user;
 
+import com.badoo.chateau.core.repos.users.UserQueries;
 import com.badoo.chateau.data.models.BaseUser;
+import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.chateau.example.data.util.ParseHelper;
-import com.badoo.chateau.core.model.User;
-import com.badoo.chateau.core.repos.users.UserQuery;
 import com.badoo.unittest.ModelTestHelper;
 import com.badoo.unittest.rx.BaseRxTestCase;
 import com.parse.ParseQuery;
@@ -50,12 +50,11 @@ public class ParseUserDataSourceTest extends BaseRxTestCase {
         when(mMockParseHelper.getCurrentUser()).thenReturn(currentUser);
 
         // When
-        TestSubscriber<User> testSubscriber = executeTarget(mTarget.getAllUsers(new UserQuery.GetAllUsersQuery()));
+        TestSubscriber<List<ExampleUser>> testSubscriber = executeTarget(mTarget.getAllUsers(new UserQueries.GetAllUsersQuery()));
 
         // Then
-        assertThat(testSubscriber.getOnNextEvents().size(), is(10));
+        assertThat(testSubscriber.getOnNextEvents().size(), is(1));
         testSubscriber.assertCompleted();
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
     }
 
     @Test
@@ -65,14 +64,13 @@ public class ParseUserDataSourceTest extends BaseRxTestCase {
         when(mMockParseHelper.find(Mockito.<ParseQuery<ParseUser>>any())).thenReturn(Observable.just(users));
 
         // When
-        TestSubscriber<User> testSubscriber = executeTarget(mTarget.getSingleUser(new UserQuery.GetUserQuery(OTHER_USER)));
+        TestSubscriber<ExampleUser> testSubscriber = executeTarget(mTarget.getSingleUser(new UserQueries.GetUserQuery(OTHER_USER)));
 
         // Then
         assertThat(testSubscriber.getOnNextEvents().size(), is(1));
-        BaseUser user = (BaseUser) testSubscriber.getOnNextEvents().get(0);
+        BaseUser user = testSubscriber.getOnNextEvents().get(0);
         assertEquals(OTHER_USER, user.getUserId());
         testSubscriber.assertCompleted();
-        assertOnIOScheduler(testSubscriber.getLastSeenThread());
     }
 
 }

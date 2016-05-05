@@ -1,32 +1,27 @@
 package com.badoo.chateau.core.usecases.conversations;
 
-import android.support.annotation.VisibleForTesting;
+import android.support.annotation.NonNull;
 
-import com.badoo.barf.usecase.RepoUseCase;
+import com.badoo.barf.data.repo.Repository;
+import com.badoo.barf.usecase.UseCase;
 import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.repos.conversations.ConversationQuery;
-import com.badoo.chateau.core.repos.conversations.ConversationRepository;
-import com.badoo.chateau.core.usecases.messages.ChatParams;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries;
 
 import rx.Observable;
 
 /**
  * Use case for retrieving data for a single conversation (not including the actual messages in it)
  */
-public class GetConversation extends RepoUseCase<ChatParams, Conversation, ConversationRepository> {
+@UseCase
+public class GetConversation<C extends Conversation> {
 
-    public GetConversation() {
-        super(ConversationRepository.KEY);
+    private final Repository<C> mConversationRepository;
+
+    public GetConversation(Repository<C> conversationRepository) {
+        mConversationRepository = conversationRepository;
     }
 
-    @VisibleForTesting
-    protected GetConversation(ConversationRepository repository) {
-        super(repository);
-    }
-
-
-    @Override
-    protected Observable<Conversation> createObservable(ChatParams params) {
-        return getRepo().query(new ConversationQuery.GetConversationQuery(params.mChatId));
+    public Observable<C> execute(@NonNull String conversationId) {
+        return  mConversationRepository.query(new ConversationQueries.GetConversationQuery<>(conversationId));
     }
 }

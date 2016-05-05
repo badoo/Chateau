@@ -3,54 +3,57 @@ package com.badoo.chateau.example.ui.session.login;
 import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
+import android.util.Log;
 
-import com.badoo.barf.mvp.BasePresenter;
-import com.badoo.chateau.example.R;
-import com.badoo.chateau.example.usecases.session.Login;
+import com.badoo.barf.mvp.BaseRxPresenter;
+import com.badoo.barf.rx.ScheduleOn;
+import com.badoo.chateau.core.model.User;
+import com.badoo.chateau.example.usecases.session.SignIn;
 
 import rx.Subscription;
 
-import static com.badoo.chateau.example.usecases.session.Login.LoginParams;
+public class LoginPresenterImpl<U extends User> extends BaseRxPresenter implements LoginPresenter {
 
-public class LoginPresenterImpl extends BasePresenter<LoginView, LoginPresenter.LoginFlowListener> implements LoginPresenter {
+    private static final String TAG = LoginPresenterImpl.class.getSimpleName();
 
     @NonNull
-    private final Login mLogin;
-
-    public LoginPresenterImpl() {
-        this(new Login());
-    }
+    private final LoginView mView;
+    @NonNull
+    private final LoginFlowListener mFlowListener;
+    @NonNull
+    private final SignIn<U> mSignIn;
 
     @VisibleForTesting
-    LoginPresenterImpl(@NonNull Login login) {
-        mLogin = login;
+    LoginPresenterImpl(@NonNull LoginView view, @NonNull LoginFlowListener flowListener, @NonNull SignIn<U> signIn) {
+        mView = view;
+        mFlowListener = flowListener;
+        mSignIn = signIn;
     }
 
     @Override
     public void onSignIn(@NonNull String userName, @NonNull String password) {
-        LoginView view = getView();
-        view.clearAllErrors();
+        mView.clearAllErrors();
         boolean error = false;
         if (TextUtils.isEmpty(userName)) {
-            view.showUserNameEmptyError();
+            mView.showUserNameEmptyError();
             error = true;
         }
         if (TextUtils.isEmpty(password)) {
-            view.showPasswordEmptyError();
+            mView.showPasswordEmptyError();
             error = true;
         }
 
         if (!error) {
-            view.displayProgress();
+            mView.displayProgress();
 
-            final LoginParams params = new LoginParams(userName, password);
-            final Subscription loginSub = mLogin.execute(params).subscribe(
+            final Subscription loginSub = mSignIn.execute(userName, password)
+                .compose(ScheduleOn.io()).subscribe(
                 user -> {
-                    getFlowListener().userLoggedIn();
+                    mFlowListener.userLoggedIn();
                 },
                 throwable -> {
-                    view.hideProgress();
-                    view.showGenericError(R.string.error_login);
+                    mView.hideProgress();
+                    onFatalError(throwable);
                 });
             trackSubscription(loginSub);
         }
@@ -58,7 +61,12 @@ public class LoginPresenterImpl extends BasePresenter<LoginView, LoginPresenter.
 
     @Override
     public void onNotRegistered() {
-        getFlowListener().userNotRegistered();
+        mFlowListener.userNotRegistered();
+    }
+
+    private void onFatalError(Throwable throwable) {
+        Log.e(TAG, "Fatal error", throwable);
+        mView.showError(true, throwable);
     }
 
 }

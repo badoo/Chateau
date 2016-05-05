@@ -2,7 +2,7 @@ package com.badoo.chateau.example.ui.conversations.list;
 
 import android.support.v7.widget.RecyclerView;
 
-import com.badoo.chateau.data.models.BaseConversation;
+import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.ui.utils.TestUtils;
 import com.badoo.chateau.extras.MultiSelectionHelper;
 
@@ -17,7 +17,6 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +44,7 @@ public class ConversationsAdapterTest {
     @Test
     public void setSetConversations() {
         // Given
-        List<BaseConversation> conversations = createConversations(10);
+        List<ExampleConversation> conversations = createConversations(10);
 
         // When
         mAdapter.setConversations(conversations);
@@ -58,37 +57,11 @@ public class ConversationsAdapterTest {
     @Test
     public void updateConversationWithEmptyList() {
         // When
-        mAdapter.updateConversation(createConversation(0));
+        mAdapter.setConversations(Collections.singletonList(createConversation(0)));
 
         // Then
         assertEquals(1, mAdapter.getItemCount());
-        verify(mDataObserver).onItemRangeInserted(0, 1);
-    }
-
-    @Test
-    public void updateConversationNotInList() {
-        // Given
-        mAdapter.setConversations(createConversations(10));
-
-        // When
-        mAdapter.updateConversation(createConversation(20));
-
-        // Then
-        assertEquals(11, mAdapter.getItemCount());
-        verify(mDataObserver).onItemRangeInserted(0, 1);
-    }
-
-    @Test
-    public void updateConversationInList() {
-        // Given
-        mAdapter.setConversations(createConversations(10));
-
-        // When
-        mAdapter.updateConversation(createConversation(5));
-
-        // Then
-        assertEquals(10, mAdapter.getItemCount());
-        verify(mDataObserver).onItemRangeChanged(5, 1, null);
+        verify(mDataObserver).onChanged();
     }
 
     @Test
@@ -97,40 +70,10 @@ public class ConversationsAdapterTest {
         when(mSelectionHelper.getSelectedItems()).thenReturn(Collections.emptySet());
 
         // When
-        List<BaseConversation> selected = mAdapter.getSelectedConversations();
+        List<ExampleConversation> selected = mAdapter.getSelectedConversations();
 
         // Then
         assertEquals(0, selected.size());
-    }
-
-    @Test
-    public void removeSingleItem() {
-        // Given
-        mAdapter.setConversations(createConversations(10));
-
-        // When
-        mAdapter.removeConversations(Collections.singletonList(createConversation(5)));
-
-        // Then
-        assertEquals(9, mAdapter.getItemCount());
-        verify(mDataObserver).onItemRangeRemoved(5, 1);
-    }
-
-    @Test
-    public void removeMultipleItems() {
-        // Given
-        mAdapter.setConversations(createConversations(10));
-        List<BaseConversation> itemsToRemove = new ArrayList<>();
-        itemsToRemove.add(createConversation(0));
-        itemsToRemove.add(createConversation(3));
-        itemsToRemove.add(createConversation(6));
-
-        // When
-        mAdapter.removeConversations(itemsToRemove);
-
-        // Then
-        assertEquals(7, mAdapter.getItemCount());
-        verify(mDataObserver, times(2)).onChanged();
     }
 
     @Test
@@ -144,22 +87,22 @@ public class ConversationsAdapterTest {
         mAdapter.setConversations(createConversations(10));
 
         // When
-        List<BaseConversation> selected = mAdapter.getSelectedConversations();
+        List<ExampleConversation> selected = mAdapter.getSelectedConversations();
 
         // Then
         assertEquals(3, selected.size());
     }
 
-    private List<BaseConversation> createConversations(int count) {
-        List<BaseConversation> conversations = new ArrayList<>();
+    private List<ExampleConversation> createConversations(int count) {
+        List<ExampleConversation> conversations = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             conversations.add(createConversation(i));
         }
         return conversations;
     }
 
-    private BaseConversation createConversation(int id) {
-        return new BaseConversation(Integer.toString(id), "convo" + id, Collections.emptyList(), null, 0);
+    private ExampleConversation createConversation(int id) {
+        return new ExampleConversation(Integer.toString(id), "convo" + id, Collections.emptyList(), null, 0);
     }
 
 }

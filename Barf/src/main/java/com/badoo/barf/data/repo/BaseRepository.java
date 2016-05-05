@@ -14,32 +14,30 @@ import rx.Observable;
  * Implementation of {@link Repository} which manages in progress queries.  For this to work correctly there are two constraints, firstly
  * the query must correctly implemented the equals method such that it can be compared to in progress queries.  Secondly the Observable
  * returned should be able to handle multiple subscription without causing long running operations such as network calls to restart.
- *
- * @param <Q> the query type.
- * @param <R> the result type.
  */
-public abstract class BaseRepository<Q extends Query, R> implements Repository<Q, R> {
+public abstract class BaseRepository<T> implements Repository<T> {
 
     private static final String TAG = BaseRepository.class.getSimpleName();
     private static final boolean DEBUG = true;
 
-    private Map<Q, Observable<R>> mInProcessQueries = new ConcurrentHashMap<>();
+    private Map<Query<?>, Observable<?>> mInProcessQueries = new ConcurrentHashMap<>();
 
     @NonNull
     @Override
-    public Observable<R> query(@NonNull Q query) {
+    public <Result> Observable<Result> query(@NonNull Query<Result> query) {
         Log.d(TAG, "Starting query: " + query);
         if (DEBUG) {
             assertQueryOverridesEqualsAndHashcode(query.getClass());
         }
 
-        Observable<R> inProcessQuery = mInProcessQueries.get(query);
+        Observable<?> inProcessQuery = mInProcessQueries.get(query);
         if (inProcessQuery != null) {
             Log.d(TAG, "Query: " + query + " already in progress, ignoring");
-            return inProcessQuery;
+            //noinspection unchecked
+            return (Observable<Result>) inProcessQuery;
         }
 
-        final Observable<R> queryObservable = createObservable(query)
+        final Observable<Result> queryObservable = createObservable(query)
             .doOnTerminate(() -> {
                 Log.d(TAG, "Query: " + query + " terminated");
                 mInProcessQueries.remove(query);
@@ -53,7 +51,7 @@ public abstract class BaseRepository<Q extends Query, R> implements Repository<Q
      * In the case an query isn't in progress, this method will be called to perform the query.
      */
     @NonNull
-    protected abstract Observable<R> createObservable(@NonNull Q query);
+    protected abstract <Result> Observable<Result> createObservable(@NonNull Query<Result> query);
 
     @VisibleForTesting
     static boolean assertQueryOverridesEqualsAndHashcode(Class<?> clazz) {
@@ -67,6 +65,5 @@ public abstract class BaseRepository<Q extends Query, R> implements Repository<Q
             throw new RuntimeException();
         }
     }
-
 
 }

@@ -4,34 +4,40 @@ import android.support.annotation.NonNull;
 
 import com.badoo.barf.data.repo.annotations.Handles;
 import com.badoo.chateau.core.model.Message;
-import com.badoo.chateau.core.repos.messages.MessageQuery.GetMessages;
-import com.badoo.chateau.core.repos.messages.MessageQuery.SubscribeToNewMessagesForConversation;
-import com.badoo.chateau.core.repos.messages.MessageQuery.SendMessage;
+import com.badoo.chateau.core.repos.messages.MessageQueries.LoadMessagesQuery;
+import com.badoo.chateau.core.repos.messages.MessageQueries.SendMessageQuery;
+import com.badoo.chateau.core.repos.messages.MessageQueries.SubscribeToMessagesQuery;
+
+import java.util.List;
 
 import rx.Observable;
 
 
-public interface MessageDataSource {
+/**
+ * Defines a data source providing messages for the {@link MessageRepository}
+ */
+public interface MessageDataSource<M extends Message> {
 
     /**
-     * Returns an {@link Observable} which emits multiple messages. Depending on if message loading is paged it might only return a subset
-     * of all messages of a conversation.
+     * Instructs the data source to load more messages. The returned observable emits True if more data can (potentially be loaded)
+     * Will emit False if you are loading older messages and have reached the end.
      */
     @NonNull
-    @Handles(GetMessages.class)
-    Observable<Message> getMessages(@NonNull GetMessages query);
-
-    @Handles(SendMessage.class)
-    void sendMessage(@NonNull SendMessage query);
+    @Handles(LoadMessagesQuery.class)
+    Observable<Boolean> loadMessages(@NonNull LoadMessagesQuery<M> query);
 
     /**
-     * Subscribe to new messages posted to a conversation.
+     * Sends a new message
+     */
+    @Handles(SendMessageQuery.class)
+    Observable<Void> sendMessage(@NonNull SendMessageQuery query);
+
+    /**
+     * Returns an observable that will emit the messages in the data source as well as updates if the data changes.
+     * These updates contain the entire data set.
      */
     @NonNull
-    @Handles(SubscribeToNewMessagesForConversation.class)
-    Observable<Message> subscribeToNewMessage(@NonNull SubscribeToNewMessagesForConversation query);
+    @Handles(SubscribeToMessagesQuery.class)
+    Observable<List<M>> subscribeToMessages(@NonNull SubscribeToMessagesQuery<M> query);
 
-    @NonNull
-    @Handles(MessageQuery.GetUpdatedMessagesForConversation.class)
-    Observable<Message> subscribeToUpdatedMessage(@NonNull MessageQuery.GetUpdatedMessagesForConversation query);
 }

@@ -1,61 +1,50 @@
 package com.badoo.chateau.core.usecases.users;
 
-import com.badoo.barf.usecase.UseCase;
-import com.badoo.chateau.core.usecases.users.GetUsers;
+import com.badoo.barf.data.repo.Repository;
+import com.badoo.chateau.core.repos.users.UserQueries;
 import com.badoo.chateau.data.models.BaseUser;
-import com.badoo.chateau.core.repos.users.UserQuery;
-import com.badoo.chateau.core.repos.users.UserRepository;
+import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.unittest.rx.BaseRxTestCase;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.Collections;
 
 import rx.Observable;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class GetUsersTest extends BaseRxTestCase {
 
-    private UserRepository mMockRepository;
+    @Mock
+    private Repository<ExampleUser> mMockRepository;
     private GetUsers mTarget;
 
     @Before
     public void beforeTest() {
         super.beforeTest();
-        mMockRepository = mock(UserRepository.class);
-        mTarget = new GetUsers(mMockRepository);
+        mTarget = new GetUsers<>(mMockRepository);
     }
 
     @Test
     public void whenMessagesForChatRequested_thenRepoIsQueriedForCorrectChatId() throws Exception {
         // Setup
         final BaseUser expectedResult = new BaseUser("id", "displayName");
-        when(mMockRepository.query(eq(new UserQuery.GetAllUsersQuery())))
-            .thenReturn(Observable.just(expectedResult));
+        when(mMockRepository.query(eq(new UserQueries.GetAllUsersQuery<>())))
+            .thenReturn(Observable.just(Collections.singletonList(expectedResult)));
 
         // Execute
-        mTarget.execute(UseCase.NoParams.NONE);
+        mTarget.execute();
 
         // Assert
-        verify(mMockRepository, times(1)).query(eq(new UserQuery.GetAllUsersQuery()));
+        verify(mMockRepository, times(1)).query(eq(new UserQueries.GetAllUsersQuery<>()));
     }
-
-    @Test
-    public void thatResultIsReturnedOnMainThread() throws Exception {
-        // Setup
-        final BaseUser expectedResult = new BaseUser("id", "displayName");
-        when(mMockRepository.query(eq(new UserQuery.GetAllUsersQuery())))
-            .thenReturn(Observable.just(expectedResult));
-
-        // Execute & Assert
-        mTarget.execute(UseCase.NoParams.NONE)
-            .doOnNext(__ -> assertTrue("Result not returned on main thread", getSchedulerFactory().isOnMainScheduler(Thread.currentThread())))
-            .subscribe();
-    }
-
 }

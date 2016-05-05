@@ -1,49 +1,40 @@
 package com.badoo.chateau.ui.conversations.list;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.StringRes;
+import android.support.annotation.Nullable;
 
-import com.badoo.barf.mvp.Presenter;
-import com.badoo.barf.mvp.BasePresenter;
-import com.badoo.barf.mvp.View;
-import com.badoo.chateau.data.models.BaseConversation;
+import com.badoo.barf.mvp.FlowListener;
+import com.badoo.barf.mvp.MvpPresenter;
+import com.badoo.barf.mvp.MvpView;
+import com.badoo.chateau.core.model.Conversation;
 
 import java.util.List;
 
-public interface ConversationListPresenter extends Presenter<ConversationListPresenter.ConversationListView, ConversationListPresenter.ConversationListFlowListener> {
+public interface ConversationListPresenter<C extends Conversation> extends MvpPresenter {
 
     /**
      * Called when a conversation is clicked.
      */
-    void onConversationClicked(@NonNull BaseConversation conversation);
+    void onConversationClicked(@NonNull C conversation);
 
     /**
      * Called when a number of conversations has been selected to be deleted
      */
-    void onDeleteConversations(@NonNull List<BaseConversation> conversations);
+    void onDeleteConversations(@NonNull List<C> conversations);
 
-    interface ConversationListView extends View<ConversationListPresenter> {
-
-        /**
-         * Show a conversation.  If the conversation is already been displayed then it will be updated, otherwise it will be
-         * added to the displayed conversations.
-         */
-        void showConversation(@NonNull BaseConversation conversation);
+    interface ConversationListView<C extends Conversation> extends MvpView {
 
         /**
-         * Show all the conversations in the list.
+         * Display the given conversations
          */
-        void showConversations(List<BaseConversation> conversations);
+        void showConversations(List<C> conversations);
 
         /**
-         * Removes a number of conversations from the list.
+         * Show an error message to the user (if the error warrants it)
+         *
+         * @param fatal true if the error was fatal, false if it can be ignored while still maintaining some functionality.
          */
-        void removeConversations(@NonNull List<BaseConversation> conversations);
-
-        /**
-         * Show an error message.
-         */
-        void showGenericError();
+        void showError(boolean fatal, @Nullable Throwable throwable);
 
         /**
          * Show the loading indicator.
@@ -57,12 +48,12 @@ public interface ConversationListPresenter extends Presenter<ConversationListPre
 
     }
 
-    interface ConversationListFlowListener extends BasePresenter.FlowListener {
+    interface ConversationListFlowListener<C extends Conversation> extends FlowListener {
 
         /**
          * Called when a conversation is selected to be opened.
          */
-        void requestOpenConversation(@NonNull BaseConversation conversation);
+        void requestOpenConversation(@NonNull C conversation);
 
     }
 }

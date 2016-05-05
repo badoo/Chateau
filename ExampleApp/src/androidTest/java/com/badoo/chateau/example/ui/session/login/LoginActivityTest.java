@@ -1,11 +1,15 @@
 package com.badoo.chateau.example.ui.session.login;
 
+import android.support.annotation.NonNull;
 import android.support.test.espresso.action.ViewActions;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.badoo.chateau.example.BaseTestCase;
 import com.badoo.chateau.example.R;
+import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.chateau.example.ui.Injector;
+import com.badoo.chateau.example.ui.session.login.LoginPresenter.LoginFlowListener;
+import com.badoo.chateau.example.ui.session.login.LoginPresenter.LoginView;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,15 +27,16 @@ public class LoginActivityTest extends BaseTestCase<LoginActivity> {
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
 
-    private LoginPresenter mPresenter;
+    private LoginPresenterImpl<ExampleUser> mPresenter;
 
     @Override
     protected void beforeActivityLaunched() {
-        mPresenter = mock(LoginPresenter.class);
+        //noinspection unchecked
+        mPresenter = mock(LoginPresenterImpl.class);
         Injector.register(LoginActivity.class, new LoginActivity.DefaultConfiguration() {
 
             @Override
-            protected LoginPresenter createPresenter() {
+            protected LoginPresenter createLoginPresenter(@NonNull LoginView view, @NonNull LoginFlowListener flowListener) {
                 return mPresenter;
             }
         });

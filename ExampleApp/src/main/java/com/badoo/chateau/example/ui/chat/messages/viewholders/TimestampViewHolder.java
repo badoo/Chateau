@@ -8,9 +8,10 @@ import android.widget.TextView;
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.data.models.BaseMessage;
 import com.badoo.chateau.data.models.payloads.TimestampPayload;
-import com.badoo.chateau.example.ui.util.BaseMessageViewHolder;
+import com.badoo.chateau.example.data.model.ExampleMessage;
+import com.badoo.chateau.example.ui.util.MessageViewHolder;
 
-public class TimestampViewHolder extends BaseMessageViewHolder<TimestampPayload> {
+public class TimestampViewHolder extends MessageViewHolder<TimestampPayload> {
 
     private final TextView mTimestamp;
 
@@ -20,7 +21,7 @@ public class TimestampViewHolder extends BaseMessageViewHolder<TimestampPayload>
     }
 
     @Override
-    protected void bindPayload(BaseMessage message, TimestampPayload payload) {
+    protected void bindPayload(ExampleMessage message, TimestampPayload payload) {
         mTimestamp.setText(DateUtils.getRelativeTimeSpanString(message.getTimestamp(), System.currentTimeMillis(), DateUtils.DAY_IN_MILLIS));
     }
 }

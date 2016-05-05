@@ -4,30 +4,34 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 
+import com.badoo.barf.mvp.PresenterFactory;
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.example.ui.BaseActivity;
+import com.badoo.chateau.example.ui.ExampleConfiguration;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.conversations.list.ConversationListActivity;
+import com.badoo.chateau.example.ui.session.login.LoginPresenter.LoginFlowListener;
+import com.badoo.chateau.example.ui.session.login.LoginPresenter.LoginView;
 import com.badoo.chateau.example.ui.session.register.RegisterActivity;
+import com.badoo.chateau.example.usecases.session.SignIn;
 import com.badoo.chateau.extras.ViewFinder;
 
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends BaseActivity implements LoginPresenter.LoginFlowListener {
+public class LoginActivity extends BaseActivity implements LoginFlowListener {
 
-    public static class DefaultConfiguration extends Injector.BaseConfiguration<LoginActivity> {
+    public static class DefaultConfiguration extends ExampleConfiguration<LoginActivity> {
 
         @Override
         public void inject(LoginActivity target) {
-            final LoginView view = new LoginViewImpl(ViewFinder.from(target));
-            final LoginPresenter presenter = createPresenter();
-            bind(view, presenter, target);
-            target.setLoginPresenter(presenter);
+            final PresenterFactory<LoginView, LoginPresenter> presenterFactory = new PresenterFactory<>(v -> createLoginPresenter(v, target));
+            new LoginViewImpl(ViewFinder.from(target), presenterFactory);
+            target.registerPresenter(presenterFactory.get());
         }
 
-        protected LoginPresenter createPresenter() {
-            return new LoginPresenterImpl();
+        protected LoginPresenter createLoginPresenter(@NonNull LoginView view, @NonNull LoginFlowListener flowListener) {
+            return new LoginPresenterImpl<>(view, flowListener, new SignIn<>(getSessionRepo()));
         }
     }
 
@@ -36,10 +40,6 @@ public class LoginActivity extends BaseActivity implements LoginPresenter.LoginF
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         Injector.inject(this);
-    }
-
-    void setLoginPresenter(@NonNull LoginPresenter presenter) {
-        registerPresenter(presenter);
     }
 
     @Override
@@ -53,6 +53,7 @@ public class LoginActivity extends BaseActivity implements LoginPresenter.LoginF
     }
 
     private void openConversationList() {
+        finish(); // Make sure you cannot return here by pressing back from Conversations
         final Intent intent = new Intent(this, ConversationListActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);

@@ -5,51 +5,58 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.badoo.barf.mvp.PresenterFactory;
+import com.badoo.chateau.core.usecases.conversations.DeleteConversations;
+import com.badoo.chateau.core.usecases.conversations.LoadMyConversations;
+import com.badoo.chateau.core.usecases.conversations.SubscribeToConversations;
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.data.models.BaseConversation;
+import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.ui.BaseActivity;
+import com.badoo.chateau.example.ui.ExampleConfiguration;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.chat.ChatActivity;
 import com.badoo.chateau.example.ui.conversations.create.selectusers.SelectUserActivity;
 import com.badoo.chateau.example.ui.conversations.list.CreateConversationPresenter.CreateConversationFlowListener;
 import com.badoo.chateau.example.ui.conversations.list.CreateConversationPresenter.CreateConversationView;
 import com.badoo.chateau.extras.ViewFinder;
+import com.badoo.chateau.ui.conversations.list.BaseConversationListPresenter;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter.ConversationListFlowListener;
 import com.badoo.chateau.ui.conversations.list.ConversationListPresenter.ConversationListView;
-import com.badoo.chateau.ui.conversations.list.ConversationListPresenterImpl;
 
-public class ConversationListActivity extends BaseActivity implements ConversationListFlowListener, CreateConversationFlowListener {
+public class ConversationListActivity extends BaseActivity
+    implements
+    ConversationListFlowListener<ExampleConversation>,
+    CreateConversationFlowListener {
 
-    public static class DefaultConfiguration extends Injector.BaseConfiguration<ConversationListActivity> {
+    public static class DefaultConfiguration extends ExampleConfiguration<ConversationListActivity> {
 
         @Override
         public void inject(ConversationListActivity target) {
-            // Conversation list
-            final ConversationListView view = createConversationListView(target);
-            final ConversationListPresenter presenter = createConversationListPresenter();
-            bind(view, presenter, target);
-            target.setConversationListPresenter(presenter);
-            // Creating new conversation
-            final CreateConversationView createConversationView = createCreateConversationView(target);
-            final CreateConversationPresenter createConversationPresenter = createCreateConversationPresenter();
-            bind(createConversationView, createConversationPresenter, target);
+            createConversationListView(target);
+            createCreateConversationView(target);
         }
 
-        protected ConversationListView createConversationListView(ConversationListActivity activity) {
-            return new ConversationListViewImpl(ViewFinder.from(activity), activity.getToolbar());
+        protected ExampleConversationListView createConversationListView(@NonNull ConversationListActivity activity) {
+            final PresenterFactory<ConversationListView<ExampleConversation>, ConversationListPresenter<ExampleConversation>> presenterFactory = new PresenterFactory<>(v -> createConversationListPresenter(v, activity));
+            final ExampleConversationListView view = new ExampleConversationListView(ViewFinder.from(activity), activity.getToolbar(), presenterFactory);
+            activity.registerPresenter(presenterFactory.get());
+            return view;
         }
 
-        protected ConversationListPresenter createConversationListPresenter() {
-            return new ConversationListPresenterImpl();
+        protected ConversationListPresenter<ExampleConversation> createConversationListPresenter(@NonNull ConversationListView<ExampleConversation> view, @NonNull ConversationListFlowListener<ExampleConversation> flowListener) {
+            final LoadMyConversations loadMyConversations = new LoadMyConversations(getConversationRepo());
+            final SubscribeToConversations<ExampleConversation> subscribeToConversations = new SubscribeToConversations<>(getConversationRepo());
+            final DeleteConversations deleteConversations = new DeleteConversations(getConversationRepo());
+            return new BaseConversationListPresenter<>(view, flowListener, loadMyConversations, subscribeToConversations, deleteConversations);
         }
 
-        protected CreateConversationView createCreateConversationView(ConversationListActivity activity) {
-            return new CreateConversationViewImpl(ViewFinder.from(activity));
+        protected CreateConversationView createCreateConversationView(@NonNull ConversationListActivity activity) {
+            return new CreateConversationViewImpl(ViewFinder.from(activity), new PresenterFactory<>(v -> createCreateConversationPresenter(v, activity)));
         }
 
-        protected CreateConversationPresenter createCreateConversationPresenter() {
-            return new CreateConversationPresenterImpl();
+        protected CreateConversationPresenter createCreateConversationPresenter(@NonNull CreateConversationView view, @NonNull CreateConversationFlowListener flowListener) {
+            return new CreateConversationPresenterImpl(flowListener);
         }
     }
 
@@ -62,12 +69,8 @@ public class ConversationListActivity extends BaseActivity implements Conversati
         Injector.inject(this);
     }
 
-    public void setConversationListPresenter(@NonNull ConversationListPresenter presenter) {
-        registerPresenter(presenter);
-    }
-
     @Override
-    public void requestOpenConversation(@NonNull BaseConversation conversation) {
+    public void requestOpenConversation(@NonNull ExampleConversation conversation) {
         final Intent intent = ChatActivity.create(this, conversation.getId(), conversation.getName());
         startActivity(intent);
     }

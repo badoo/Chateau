@@ -1,7 +1,7 @@
 ext {
-    chateauLibraryVersionName = '1.0.0-preview1'
-    chateauExampleAppVersionName = '1.0.0-preview1'
-    chateauExampleAppVersionCode = 1
+    chateauLibraryVersionName = '1.0.0-preview2'
+    chateauExampleAppVersionName = '1.0.0-preview2'
+    chateauExampleAppVersionCode = 3
 }
 
 

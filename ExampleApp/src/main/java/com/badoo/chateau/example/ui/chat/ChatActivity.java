@@ -10,53 +10,76 @@ import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.MenuItem;
 
+import com.badoo.barf.mvp.PresenterFactory;
+import com.badoo.chateau.core.usecases.conversations.GetConversation;
+import com.badoo.chateau.core.usecases.conversations.MarkConversationRead;
+import com.badoo.chateau.core.usecases.istyping.SendUserIsTyping;
+import com.badoo.chateau.core.usecases.istyping.SubscribeToUsersTyping;
+import com.badoo.chateau.core.usecases.messages.LoadMessages;
+import com.badoo.chateau.core.usecases.messages.SendMessage;
+import com.badoo.chateau.core.usecases.messages.SubscribeToMessages;
 import com.badoo.chateau.example.R;
+import com.badoo.chateau.example.data.model.ExampleConversation;
+import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.chateau.example.ui.BaseActivity;
+import com.badoo.chateau.example.ui.ExampleConfiguration;
 import com.badoo.chateau.example.ui.Injector;
 import com.badoo.chateau.example.ui.chat.input.ChatInputViewImpl;
-import com.badoo.chateau.example.ui.chat.messages.MessageListViewImpl;
+import com.badoo.chateau.example.ui.chat.messages.ExampleMessageListView;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenter;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenterImpl;
+import com.badoo.chateau.ui.chat.messages.BaseMessageListPresenter;
 import com.badoo.chateau.ui.chat.messages.MessageListPresenter;
-import com.badoo.chateau.ui.chat.messages.MessageListPresenterImpl;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static com.badoo.chateau.ui.chat.input.ChatInputPresenter.ChatInputFlowListener;
+import static com.badoo.chateau.ui.chat.input.ChatInputPresenter.ChatInputView;
+import static com.badoo.chateau.ui.chat.messages.MessageListPresenter.MessageListFlowListener;
+import static com.badoo.chateau.ui.chat.messages.MessageListPresenter.MessageListView;
 
-public class ChatActivity extends BaseActivity implements ChatInputPresenter.ChatInputFlowListener, MessageListPresenter.MessageListFlowListener {
 
-    public static class DefaultConfiguration extends Injector.BaseConfiguration<ChatActivity> {
+public class ChatActivity extends BaseActivity implements ChatInputFlowListener, MessageListFlowListener {
+
+    public static class DefaultConfiguration extends ExampleConfiguration<ChatActivity> {
 
         @Override
         public void inject(ChatActivity activity) {
-            final ViewFinder finder = ViewFinder.from(activity);
             final String chatId = activity.getIntent().getStringExtra(EXTRA_CHAT_ID);
-
-            ChatInputPresenter.ChatInputView chatInputView = new ChatInputViewImpl(finder);
-            final ChatInputPresenter inputPresenter = createChatInputPresenter(chatId);
-            bind(chatInputView, inputPresenter, activity);
-            activity.setInputPresenter(inputPresenter);
-
-            MessageListPresenter.MessageListView messageListView = createMessageListView(activity);
-            final MessageListPresenter messageListPresenter = createMessageListPresenter(chatId);
-            bind(messageListView, messageListPresenter, activity);
-            activity.setMessageListPresenter(messageListPresenter);
+            createChatInputView(activity, chatId);
+            createMessageListView(activity, chatId);
         }
 
-        protected MessageListPresenter createMessageListPresenter(String chatId) {
-            return new MessageListPresenterImpl(chatId);
+        protected ChatInputView createChatInputView(@NonNull ChatActivity activity, @NonNull String chatId) {
+            final PresenterFactory<ChatInputView, ChatInputPresenter> presenterFactory = new PresenterFactory<>(v -> createChatInputPresenter(v, activity, chatId));
+            final ChatInputViewImpl chatInputView = new ChatInputViewImpl(ViewFinder.from(activity), presenterFactory);
+            activity.registerPresenter(presenterFactory.get());
+            activity.setInputPresenter(presenterFactory.get());
+            return chatInputView;
         }
 
-        protected MessageListPresenter.MessageListView createMessageListView(ChatActivity activity) {
-            return new MessageListViewImpl(ViewFinder.from(activity), activity.getSupportActionBar());
+        protected ChatInputPresenter createChatInputPresenter(@NonNull ChatInputView view, @NonNull ChatInputFlowListener flowListener, @NonNull String chatId) {
+            return new ChatInputPresenterImpl(chatId, view, flowListener, new SendMessage(getMessageRepo()), new SendUserIsTyping(getIsTypingRepo()));
         }
 
-        protected ChatInputPresenter createChatInputPresenter(String chatId) {
-            return new ChatInputPresenterImpl(chatId);
+        protected ExampleMessageListView createMessageListView(@NonNull ChatActivity activity, @NonNull String chatId) {
+            final PresenterFactory<MessageListView<ExampleMessage, ExampleConversation>, MessageListPresenter> presenterFactory = new PresenterFactory<>(v -> createMessageListPresenter(v, activity, chatId));
+            final ExampleMessageListView view = new ExampleMessageListView(ViewFinder.from(activity), activity.getSupportActionBar(), presenterFactory);
+            activity.registerPresenter(presenterFactory.get());
+            return view;
+        }
+
+        protected MessageListPresenter createMessageListPresenter(@NonNull MessageListView<ExampleMessage, ExampleConversation> view, @NonNull MessageListFlowListener flowListener, @NonNull String chatId) {
+            return new BaseMessageListPresenter<>(chatId, view, flowListener,
+                new LoadMessages<>(getMessageRepo()),
+                new SubscribeToMessages<>(getMessageRepo()),
+                new MarkConversationRead(getConversationRepo()),
+                new GetConversation<>(getConversationRepo()),
+                new SubscribeToUsersTyping<>(getIsTypingRepo()));
         }
     }
 
@@ -94,11 +117,6 @@ public class ChatActivity extends BaseActivity implements ChatInputPresenter.Cha
 
     void setInputPresenter(@NonNull ChatInputPresenter chatInputPresenter) {
         mInputPresenter = chatInputPresenter;
-        registerPresenter(mInputPresenter);
-    }
-
-    void setMessageListPresenter(@NonNull MessageListPresenter messageListPresenter) {
-        registerPresenter(messageListPresenter);
     }
 
     @Override

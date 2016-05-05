@@ -2,19 +2,30 @@ package com.badoo.chateau.ui.conversations.create.namegroup;
 
 import android.support.annotation.NonNull;
 
-import com.badoo.barf.mvp.Presenter;
-import com.badoo.barf.mvp.View;
+import com.badoo.barf.mvp.FlowListener;
+import com.badoo.barf.mvp.MvpPresenter;
+import com.badoo.barf.mvp.MvpView;
+import com.badoo.chateau.core.model.Conversation;
 
-public interface NameGroupPresenter extends Presenter<NameGroupPresenter.NameGroupView, NameGroupPresenter.NameGroupFlowListener> {
+/**
+ * Presenter which manages naming of a new chat group
+ */
+public interface NameGroupPresenter extends MvpPresenter {
 
+    /**
+     * Called when a name has been selected
+     */
     void onCreateGroupClicked(@NonNull String name);
 
-    interface NameGroupFlowListener extends Presenter.FlowListener {
+    interface NameGroupFlowListener<C extends Conversation> extends FlowListener {
 
-        void requestOpenChat(@NonNull String chatId);
+        /**
+         * Requests a conversation to be opened
+         */
+        void requestOpenChat(@NonNull C conversationId);
     }
 
-    interface NameGroupView extends View<NameGroupPresenter> {
+    interface NameGroupView extends MvpView {
 
         void showGroupNameEmptyError();
 

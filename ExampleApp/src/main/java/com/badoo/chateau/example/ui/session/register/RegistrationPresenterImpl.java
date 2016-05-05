@@ -1,57 +1,61 @@
 package com.badoo.chateau.example.ui.session.register;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
+import android.util.Log;
 
-import com.badoo.barf.mvp.BasePresenter;
-import com.badoo.chateau.example.R;
+import com.badoo.barf.mvp.BaseRxPresenter;
+import com.badoo.barf.rx.ScheduleOn;
+import com.badoo.chateau.core.model.User;
 import com.badoo.chateau.example.usecases.session.Register;
 
 import rx.Subscription;
 
 
-public class RegistrationPresenterImpl extends BasePresenter<RegistrationView, RegistrationPresenter.RegistrationFlowListener> implements RegistrationPresenter {
+public class RegistrationPresenterImpl<U extends User> extends BaseRxPresenter implements RegistrationPresenter {
+
+    private static final String TAG = RegistrationPresenterImpl.class.getSimpleName();
 
     @NonNull
-    private final Register mRegister;
+    private final RegistrationView mView;
+    @NonNull
+    private final RegistrationFlowListener mFlowListener;
+    @NonNull
+    private final Register<U> mRegister;
 
-    public RegistrationPresenterImpl() {
-        this(new Register());
-    }
 
-    @VisibleForTesting
-    RegistrationPresenterImpl(@NonNull Register register) {
+    public RegistrationPresenterImpl(@NonNull RegistrationView view, @NonNull RegistrationFlowListener flowListener, @NonNull Register<U> register) {
+        mView = view;
+        mFlowListener = flowListener;
         mRegister = register;
     }
 
     @Override
     public void onRegister(@NonNull String userName, @NonNull String displayName, @NonNull String password) {
-        RegistrationView view = getView();
-        view.clearAllErrors();
+        mView.clearAllErrors();
         boolean error = false;
         if (TextUtils.isEmpty(userName)) {
-            view.showUserNameEmptyError();
+            mView.showUserNameEmptyError();
             error = true;
         }
         if (TextUtils.isEmpty(displayName)) {
-            view.showDisplayNameEmptyError();
+            mView.showDisplayNameEmptyError();
             error = true;
         }
         if (TextUtils.isEmpty(password)) {
-            view.showPasswordEmptyError();
+            mView.showPasswordEmptyError();
             error = true;
         }
 
         if (!error) {
-            view.showProgress();
+            mView.showProgress();
 
-            final Register.RegisterParams params = new Register.RegisterParams(userName, displayName, password);
-            final Subscription registerSub = mRegister.execute(params).subscribe(user -> {
-                getFlowListener().userRegistered();
+            final Subscription registerSub = mRegister.execute(userName, displayName, password)
+                .compose(ScheduleOn.io()).subscribe(user -> {
+                mFlowListener.userRegistered();
             }, throwable -> {
-                view.hideProgress();
-                view.showGenericError(R.string.error_registration);
+                mView.hideProgress();
+                onFatalError(throwable);
             });
             trackSubscription(registerSub);
         }
@@ -59,7 +63,12 @@ public class RegistrationPresenterImpl extends BasePresenter<RegistrationView, R
 
     @Override
     public void onAlreadyRegistered() {
-        getFlowListener().userAlreadyRegistered();
+        mFlowListener.userAlreadyRegistered();
+    }
+
+    private void onFatalError(Throwable throwable) {
+        Log.e(TAG, "Fatal error", throwable);
+        mView.showError(true, throwable);
     }
 
 }

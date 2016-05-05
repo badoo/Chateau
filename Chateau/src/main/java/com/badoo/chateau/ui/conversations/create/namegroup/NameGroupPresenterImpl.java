@@ -1,50 +1,50 @@
 package com.badoo.chateau.ui.conversations.create.namegroup;
 
 import android.support.annotation.NonNull;
-import android.support.annotation.VisibleForTesting;
 import android.text.TextUtils;
 
-import com.badoo.barf.mvp.BasePresenter;
-import com.badoo.chateau.data.models.BaseConversation;
+import com.badoo.barf.mvp.BaseRxPresenter;
+import com.badoo.barf.rx.ScheduleOn;
+import com.badoo.chateau.core.model.Conversation;
 import com.badoo.chateau.core.usecases.conversations.CreateGroupConversation;
 
 import java.util.List;
 
 import rx.Subscription;
 
-import static com.badoo.chateau.core.usecases.conversations.CreateGroupConversation.CreateGroupConversationParams;
-
-public class NameGroupPresenterImpl extends BasePresenter<NameGroupPresenter.NameGroupView, NameGroupPresenter.NameGroupFlowListener> implements NameGroupPresenter {
+public class NameGroupPresenterImpl<C extends Conversation> extends BaseRxPresenter
+    implements NameGroupPresenter {
 
     @NonNull
-    private final CreateGroupConversation mGroupConversation;
+    private final CreateGroupConversation<C> mGroupConversation;
     @NonNull
     private final List<String> mUserIds;
+    @NonNull
+    private final NameGroupView mView;
+    @NonNull
+    private final NameGroupFlowListener<C> mFlowListener;
 
-    public NameGroupPresenterImpl(@NonNull List<String> usersIds) {
-        this(usersIds, new CreateGroupConversation());
-    }
-
-    @VisibleForTesting
-    NameGroupPresenterImpl(@NonNull List<String> userIds,
-                           @NonNull CreateGroupConversation groupConversation) {
-        mGroupConversation = groupConversation;
+    public NameGroupPresenterImpl(@NonNull NameGroupView view,
+                                  @NonNull NameGroupFlowListener<C> flowListener,
+                                  @NonNull List<String> userIds,
+                                  @NonNull CreateGroupConversation<C> groupConversation) {
+        mView = view;
+        mFlowListener = flowListener;
         mUserIds = userIds;
+        mGroupConversation = groupConversation;
     }
 
     @Override
     public void onCreateGroupClicked(@NonNull String name) {
         if (TextUtils.isEmpty(name)) {
-            getView().showGroupNameEmptyError();
+            mView.showGroupNameEmptyError();
             return;
         }
 
-        final CreateGroupConversationParams params = new CreateGroupConversationParams(mUserIds, name);
-        final Subscription createGroupSub = mGroupConversation.execute(params)
-            .map(conversation -> (BaseConversation) conversation)
-            .subscribe(conversation -> {
-                    getFlowListener().requestOpenChat(conversation.getId());
-                },
+        final Subscription createGroupSub = mGroupConversation.execute(mUserIds, name)
+            .compose(ScheduleOn.io())
+            .subscribe(
+                mFlowListener::requestOpenChat,
                 throwable -> {
                     throw new IllegalStateException("Can't create chat????", throwable);
                 });

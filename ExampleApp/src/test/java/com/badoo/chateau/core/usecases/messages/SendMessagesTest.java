@@ -1,31 +1,33 @@
 package com.badoo.chateau.core.usecases.messages;
 
-import com.badoo.chateau.core.model.Message;
-import com.badoo.chateau.core.repos.messages.MessageQuery;
-import com.badoo.chateau.core.repos.messages.MessageRepository;
+import com.badoo.barf.data.repo.Repository;
+import com.badoo.chateau.core.repos.messages.MessageQueries;
+import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.unittest.rx.BaseRxTestCase;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import rx.Observable;
 
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class SendMessagesTest extends BaseRxTestCase {
 
-    private MessageRepository mMockRepository;
+    @Mock
+    private Repository<ExampleMessage> mMockRepository;
     private SendMessage mTarget;
 
     @Before
     public void beforeTest() {
         super.beforeTest();
-        mMockRepository = mock(MessageRepository.class);
         mTarget = new SendMessage(mMockRepository);
     }
 
@@ -33,29 +35,14 @@ public class SendMessagesTest extends BaseRxTestCase {
     public void whenMessagesForChatSent_thenRepoIsQueriedWithSentMessage() throws Exception {
         // Setup
         final String chatId = "chatId";
-        final Message message = new Message() {};
-        when(mMockRepository.query(eq(new MessageQuery.SendMessage(chatId, message))))
+        final String message = null;
+        when(mMockRepository.query(eq(new MessageQueries.SendMessageQuery(chatId, message, null))))
             .thenReturn(Observable.never());
 
         // Execute
-        mTarget.execute(new SendMessage.SendMessageParams(chatId, message));
+        mTarget.execute(chatId, message, null);
 
         // Assert
-        verify(mMockRepository, times(1)).query(eq(new MessageQuery.SendMessage(chatId, message)));
+        verify(mMockRepository, times(1)).query(eq(new MessageQueries.SendMessageQuery(chatId, message, null)));
     }
-
-    @Test
-    public void thatResultIsReturnedOnMainThread() throws Exception {
-        // Setup
-        final String chatId = "chatId";
-        final Message message = new Message() {};
-        when(mMockRepository.query(eq(new MessageQuery.SendMessage(chatId, message))))
-            .thenReturn(Observable.never());
-
-        // Execute & Assert
-        mTarget.execute(new SendMessage.SendMessageParams(chatId, message))
-            .doOnNext(__ -> assertTrue("Result not returned on main thread", getSchedulerFactory().isOnMainScheduler(Thread.currentThread())))
-            .subscribe();
-    }
-
 }

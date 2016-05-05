@@ -1,12 +1,17 @@
 package com.badoo.chateau.example.ui.conversations.create.selectusers;
 
+import android.support.annotation.NonNull;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.badoo.chateau.example.BaseTestCase;
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.data.models.BaseUser;
+import com.badoo.chateau.example.data.model.ExampleConversation;
+import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.chateau.example.ui.Injector;
+import com.badoo.chateau.example.ui.conversations.create.selectusers.SelectUserActivity.DefaultConfiguration;
 import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter;
+import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter.UserListFlowListener;
+import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter.UserListView;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,8 +30,8 @@ import static org.mockito.Mockito.verify;
 @RunWith(AndroidJUnit4.class)
 public class SelectUserActivityTest extends BaseTestCase<SelectUserActivity> {
 
-    private UserListPresenter mPresenter;
-    private UserListPresenter.UserListView mView;
+    private UserListPresenter<ExampleUser> mPresenter;
+    private UserListView<ExampleUser> mView;
 
     @Override
     protected Class<SelectUserActivity> getActivityClass() {
@@ -35,17 +40,17 @@ public class SelectUserActivityTest extends BaseTestCase<SelectUserActivity> {
 
     @Override
     protected void beforeActivityLaunched() {
+        //noinspection unchecked
         mPresenter = mock(UserListPresenter.class);
-        Injector.register(SelectUserActivity.class, new SelectUserActivity.DefaultConfiguration() {
+        Injector.register(SelectUserActivity.class, new DefaultConfiguration() {
 
-            @Override
-            protected UserListPresenter.UserListView createView(SelectUserActivity activity) {
+            protected UserListView<ExampleUser> createView(@NonNull SelectUserActivity activity) {
                 mView = super.createView(activity);
                 return mView;
             }
 
             @Override
-            protected UserListPresenter createPresenter() {
+            protected UserListPresenter createUserListPresenter(@NonNull UserListView<ExampleUser> userListView, @NonNull UserListFlowListener<ExampleConversation, ExampleUser> flowListener) {
                 return mPresenter;
             }
         });
@@ -54,20 +59,20 @@ public class SelectUserActivityTest extends BaseTestCase<SelectUserActivity> {
     @Test
     public void startNewConversationWithUser() {
         // Given
-        final List<BaseUser> users = createUsers(5);
+        final List<ExampleUser> users = createUsers(5);
         runOnUiThread(() -> mView.showUsers(users));
 
         // When
         onView(withId(R.id.createConversation_userList)).perform(actionOnItemAtPosition(0, click()));
 
         // Then
-        verify(mPresenter).onUsersSelected(users.subList(0, 1));
+        verify(mPresenter).onUsersSelected(users.subList(0,1));
     }
 
     @Test
     public void startNewConversationWithMultipleUsers() {
         // Given
-        final List<BaseUser> users = createUsers(5);
+        final List<ExampleUser> users = createUsers(5);
         runOnUiThread(() -> mView.showUsers(users));
 
         // When
@@ -83,7 +88,7 @@ public class SelectUserActivityTest extends BaseTestCase<SelectUserActivity> {
     @Test
     public void startNewConversationWithUserAfterExitingMultiUserSelect() {
         // Given
-        final List<BaseUser> users = createUsers(5);
+        final List<ExampleUser> users = createUsers(5);
         runOnUiThread(() -> mView.showUsers(users));
 
         // When
@@ -98,7 +103,7 @@ public class SelectUserActivityTest extends BaseTestCase<SelectUserActivity> {
     @Test
     public void startNewConversationWithMultipleUsersAfterSelectionChange() {
         // Given
-        final List<BaseUser> users = createUsers(5);
+        final List<ExampleUser> users = createUsers(5);
         runOnUiThread(() -> mView.showUsers(users));
 
         // When
@@ -113,10 +118,10 @@ public class SelectUserActivityTest extends BaseTestCase<SelectUserActivity> {
         verify(mPresenter).onUsersSelected(users.subList(0, 2));
     }
 
-    private List<BaseUser> createUsers(int count) {
-        List<BaseUser> users = new ArrayList<>();
+    private List<ExampleUser> createUsers(int count) {
+        List<ExampleUser> users = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            users.add(new BaseUser(Integer.toString(count), "User " + i));
+            users.add(new ExampleUser(Integer.toString(count), "User " + i));
         }
         return users;
     }
