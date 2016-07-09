@@ -75,7 +75,6 @@ public abstract class BaseMessage implements Message {
         if (mId != null ? !mId.equals(that.mId) : that.mId != null) return false;
         if (mFrom != null ? !mFrom.equals(that.mFrom) : that.mFrom != null) return false;
         return mPayload != null ? mPayload.equals(that.mPayload) : that.mPayload == null;
-
     }
 
     @Override
@@ -96,6 +95,8 @@ public abstract class BaseMessage implements Message {
             ", mTimestamp=" + mTimestamp +
             ", mFrom='" + mFrom + '\'' +
             ", mPayload=" + mPayload +
+            ", mFromMe=" + mFromMe +
+            ", mFailedToSend=" + mFailedToSend +
             '}';
     }
 }

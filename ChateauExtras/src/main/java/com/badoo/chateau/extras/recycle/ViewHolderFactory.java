@@ -1,4 +1,4 @@
-package com.badoo.chateau.example.ui.chat.messages;
+package com.badoo.chateau.extras.recycle;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;

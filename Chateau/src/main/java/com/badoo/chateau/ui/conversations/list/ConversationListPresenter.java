@@ -22,6 +22,12 @@ public interface ConversationListPresenter<C extends Conversation> extends MvpPr
      */
     void onDeleteConversations(@NonNull List<C> conversations);
 
+    /**
+     * Called when the list of conversations has been scrolled and is close to the current end.
+     * May trigger a load of more messages.
+     */
+    void onMoreConversationsRequired();
+
     interface ConversationListView<C extends Conversation> extends MvpView {
 
         /**

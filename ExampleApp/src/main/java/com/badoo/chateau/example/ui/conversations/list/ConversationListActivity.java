@@ -7,8 +7,8 @@ import android.support.annotation.Nullable;
 
 import com.badoo.barf.mvp.PresenterFactory;
 import com.badoo.chateau.core.usecases.conversations.DeleteConversations;
-import com.badoo.chateau.core.usecases.conversations.LoadMyConversations;
-import com.badoo.chateau.core.usecases.conversations.SubscribeToConversations;
+import com.badoo.chateau.core.usecases.conversations.LoadConversations;
+import com.badoo.chateau.core.usecases.conversations.SubscribeToConversationUpdates;
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.ui.BaseActivity;
@@ -45,10 +45,10 @@ public class ConversationListActivity extends BaseActivity
         }
 
         protected ConversationListPresenter<ExampleConversation> createConversationListPresenter(@NonNull ConversationListView<ExampleConversation> view, @NonNull ConversationListFlowListener<ExampleConversation> flowListener) {
-            final LoadMyConversations loadMyConversations = new LoadMyConversations(getConversationRepo());
-            final SubscribeToConversations<ExampleConversation> subscribeToConversations = new SubscribeToConversations<>(getConversationRepo());
+            final LoadConversations<ExampleConversation> loadConversations = new LoadConversations<>(getConversationRepo());
+            final SubscribeToConversationUpdates subscribeToConversationUpdates = new SubscribeToConversationUpdates(getConversationRepo());
             final DeleteConversations deleteConversations = new DeleteConversations(getConversationRepo());
-            return new BaseConversationListPresenter<>(view, flowListener, loadMyConversations, subscribeToConversations, deleteConversations);
+            return new BaseConversationListPresenter<>(view, flowListener, loadConversations, subscribeToConversationUpdates, deleteConversations);
         }
 
         protected CreateConversationView createCreateConversationView(@NonNull ConversationListActivity activity) {

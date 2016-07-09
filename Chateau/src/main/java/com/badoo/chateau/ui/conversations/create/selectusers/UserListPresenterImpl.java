@@ -39,15 +39,14 @@ public class UserListPresenterImpl<U extends BaseUser, C extends Conversation> e
     }
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-        trackSubscription(mGetUsers.execute()
+    public void onStart() {
+        super.onStart();
+        manage(mGetUsers.execute()
             .compose(ScheduleOn.io())
             .flatMap(Observable::from)
             .toList()
             .subscribe(mView::showUsers, this::onFatalError));
     }
-
 
     @Override
     public void onUsersSelected(List<U> users) {
@@ -62,7 +61,7 @@ public class UserListPresenterImpl<U extends BaseUser, C extends Conversation> e
                         mFlowListener.requestOpenChat(conversation);
                     },
                     this::onFatalError);
-            trackSubscription(createConversationSub);
+            manage(createConversationSub);
         }
         else {
             mFlowListener.requestCreateGroupChat(users);

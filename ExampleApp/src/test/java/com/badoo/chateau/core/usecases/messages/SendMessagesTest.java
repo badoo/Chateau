@@ -23,26 +23,27 @@ public class SendMessagesTest extends BaseRxTestCase {
 
     @Mock
     private Repository<ExampleMessage> mMockRepository;
-    private SendMessage mTarget;
+    private SendMessage<ExampleMessage> mTarget;
 
     @Before
     public void beforeTest() {
         super.beforeTest();
-        mTarget = new SendMessage(mMockRepository);
+        mTarget = new SendMessage<>(mMockRepository);
     }
 
     @Test
     public void whenMessagesForChatSent_thenRepoIsQueriedWithSentMessage() throws Exception {
         // Setup
-        final String chatId = "chatId";
-        final String message = null;
-        when(mMockRepository.query(eq(new MessageQueries.SendMessageQuery(chatId, message, null))))
+        final String conversationId = "conversationId";
+        ExampleMessage message = ExampleMessage.createOutgoingTextMessage(conversationId, "message");
+
+        when(mMockRepository.query(eq(new MessageQueries.SendQuery<>(conversationId, message))))
             .thenReturn(Observable.never());
 
         // Execute
-        mTarget.execute(chatId, message, null);
+        mTarget.execute(conversationId, message);
 
         // Assert
-        verify(mMockRepository, times(1)).query(eq(new MessageQueries.SendMessageQuery(chatId, message, null)));
+        verify(mMockRepository, times(1)).query(eq(new MessageQueries.SendQuery<>(conversationId, message)));
     }
 }

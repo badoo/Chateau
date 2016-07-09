@@ -11,7 +11,7 @@ import com.badoo.chateau.data.models.payloads.ImagePayload;
 import com.badoo.chateau.data.models.payloads.TextPayload;
 import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.data.model.ExampleMessage;
-import com.badoo.chateau.example.ui.util.BindableViewHolder;
+import com.badoo.chateau.extras.recycle.BindableViewHolder;
 import com.badoo.chateau.extras.MultiSelectionHelper;
 import com.badoo.chateau.extras.ViewFinder;
 

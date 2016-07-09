@@ -1,11 +1,12 @@
 package com.badoo.chateau.core.repos.messages;
 
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badoo.barf.data.repo.Query;
 import com.badoo.chateau.core.model.Message;
+import com.badoo.chateau.core.repos.messages.MessageDataSource.LoadResult;
+import com.badoo.chateau.core.repos.messages.MessageDataSource.Update;
 
 import java.util.List;
 
@@ -17,28 +18,48 @@ public abstract class MessageQueries {
     /**
      * Query for retrieving messages in a conversation with optional paging.
      */
-    public static class LoadMessagesQuery<M extends Message> implements Query<Boolean> {
+    public static class LoadQuery<M extends Message> implements Query<LoadResult<M>> {
 
-        private final String mConversationId;
-        @Nullable
-        private final M mChunkBefore;
-
-        /**
-         * @param conversationId id of the conversation to load messages for
-         * @param chunkBefore    if not null, load a chunk/page of messages that come before this one
-         */
-        public LoadMessagesQuery(@NonNull String conversationId, @Nullable M chunkBefore) {
-            mConversationId = conversationId;
-            mChunkBefore = chunkBefore;
+        public enum Type {
+            ALL,
+            NEWER,
+            OLDER
         }
 
+        @NonNull
+        private final String mConversationId;
+        @NonNull
+        private final Type mType;
+        @Nullable
+        private final M mOldest;
+        @Nullable
+        private final M mNewest;
+
+        public LoadQuery(@NonNull String conversationId, @NonNull Type type, @Nullable M oldest, @Nullable M newest) {
+            mConversationId = conversationId;
+            mType = type;
+            mOldest = oldest;
+            mNewest = newest;
+        }
+
+        @NonNull
         public String getConversationId() {
             return mConversationId;
         }
 
+        @NonNull
+        public Type getType() {
+            return mType;
+        }
+
         @Nullable
-        public M getChunkBefore() {
-            return mChunkBefore;
+        public M getOldest() {
+            return mOldest;
+        }
+
+        @Nullable
+        public M getNewest() {
+            return mNewest;
         }
 
         @Override
@@ -46,37 +67,69 @@ public abstract class MessageQueries {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            final LoadMessagesQuery that = (LoadMessagesQuery) o;
+            LoadQuery<?> that = (LoadQuery<?>) o;
 
-            return mConversationId.equals(that.mConversationId) && (mChunkBefore != null ? mChunkBefore.equals(that.mChunkBefore) : that.mChunkBefore == null);
+            if (!mConversationId.equals(that.mConversationId)) return false;
+            if (mType != that.mType) return false;
+            if (mOldest != null ? !mOldest.equals(that.mOldest) : that.mOldest != null) return false;
+            return mNewest != null ? mNewest.equals(that.mNewest) : that.mNewest == null;
 
         }
 
         @Override
         public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + (mConversationId.hashCode());
-            result = 31 * result + (mChunkBefore != null ? mChunkBefore.hashCode() : 0);
+            int result = mConversationId.hashCode();
+            result = 31 * result + mType.hashCode();
+            result = 31 * result + (mOldest != null ? mOldest.hashCode() : 0);
+            result = 31 * result + (mNewest != null ? mNewest.hashCode() : 0);
             return result;
         }
 
         @Override
         public String toString() {
-            return "LoadMessagesQuery{" +
+            return "LoadQuery{" +
                 "mConversationId='" + mConversationId + '\'' +
-                ", mChunkBefore=" + mChunkBefore +
+                ", mType=" + mType +
+                ", mOldest=" + mOldest +
+                ", mNewest=" + mNewest +
                 '}';
         }
     }
 
     /**
-     * Query for subscribing to new messages in a conversation
+     * Query for retrieving a list of messages that have not been delivered due to errors.
      */
-    public static class SubscribeToMessagesQuery<M extends Message> implements Query<List<M>> {
+    public static class GetUndeliveredQuery<M extends Message> implements Query<List<M>> {
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            return (o == null || getClass() == o.getClass());
+        }
+
+        @Override
+        public int hashCode() {
+            return 42;
+        }
+
+        @Override
+        public String toString() {
+            return "GetUndeliveredQuery{}";
+        }
+    }
+
+    /**
+     * Query for subscribing to new messages in a conversation, or messages in all conversations
+     */
+    public static class SubscribeQuery<M extends Message> implements Query<Update<M>> {
 
         private final String mConversationId;
 
-        public SubscribeToMessagesQuery(@NonNull String conversationId) {
+        public SubscribeQuery() {
+            mConversationId = null;
+        }
+
+        public SubscribeQuery(@Nullable String conversationId) {
             mConversationId = conversationId;
         }
 
@@ -87,24 +140,22 @@ public abstract class MessageQueries {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (!(o instanceof SubscribeQuery)) return false;
 
-            SubscribeToMessagesQuery that = (SubscribeToMessagesQuery) o;
+            SubscribeQuery that = (SubscribeQuery) o;
 
-            return mConversationId.equals(that.mConversationId);
+            return mConversationId != null ? mConversationId.equals(that.mConversationId) : that.mConversationId == null;
 
         }
 
         @Override
         public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + (mConversationId.hashCode());
-            return result;
+            return mConversationId != null ? mConversationId.hashCode() : 0;
         }
 
         @Override
         public String toString() {
-            return "SubscribeToMessagesQuery{" +
+            return "SubscribeQuery{" +
                 "mConversationId='" + mConversationId + '\'' +
                 '}';
         }
@@ -113,16 +164,14 @@ public abstract class MessageQueries {
     /**
      * Query for sending a new message
      */
-    public static class SendMessageQuery implements Query<Void> {
+    public static class SendQuery<M extends Message> implements Query<Void> {
 
         private final String mConversationId;
-        private final String mMessage;
-        private final Uri mMediaUri;
+        private final M mMessage;
 
-        public SendMessageQuery(@NonNull String conversationId, @Nullable String message, @Nullable Uri mediaUri ) {
+        public SendQuery(@NonNull String conversationId, @NonNull M message) {
             mConversationId = conversationId;
             mMessage = message;
-            mMediaUri = mediaUri;
         }
 
         @NonNull
@@ -130,12 +179,8 @@ public abstract class MessageQueries {
             return mConversationId;
         }
 
-        public String getMessage() {
+        public M getMessage() {
             return mMessage;
-        }
-
-        public Uri getMediaUri() {
-            return mMediaUri;
         }
 
         @Override
@@ -143,28 +188,25 @@ public abstract class MessageQueries {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            SendMessageQuery that = (SendMessageQuery) o;
+            SendQuery<?> that = (SendQuery<?>) o;
 
             if (!mConversationId.equals(that.mConversationId)) return false;
-            if (mMessage != null ? !mMessage.equals(that.mMessage) : that.mMessage != null) return false;
-            return mMediaUri != null ? mMediaUri.equals(that.mMediaUri) : that.mMediaUri == null;
+            return mMessage.equals(that.mMessage);
 
         }
 
         @Override
         public int hashCode() {
             int result = mConversationId.hashCode();
-            result = 31 * result + (mMessage != null ? mMessage.hashCode() : 0);
-            result = 31 * result + (mMediaUri != null ? mMediaUri.hashCode() : 0);
+            result = 31 * result + mMessage.hashCode();
             return result;
         }
 
         @Override
         public String toString() {
-            return "SendMessage{" +
+            return "SendQuery{" +
                 "mConversationId='" + mConversationId + '\'' +
-                ", mMessage='" + mMessage + '\'' +
-                ", mMediaUri=" + mMediaUri +
+                ", mMessage=" + mMessage +
                 '}';
         }
     }

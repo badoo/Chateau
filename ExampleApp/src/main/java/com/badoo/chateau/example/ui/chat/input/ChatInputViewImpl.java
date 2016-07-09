@@ -5,34 +5,25 @@ import android.support.annotation.NonNull;
 import com.badoo.barf.mvp.MvpView;
 import com.badoo.barf.mvp.PresenterFactory;
 import com.badoo.chateau.example.R;
+import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.chateau.example.ui.widgets.ChatTextInputView;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.chat.input.ChatInputPresenter;
 
-import static com.badoo.chateau.ui.chat.input.ChatInputPresenter.*;
+import static com.badoo.chateau.ui.chat.input.ChatInputPresenter.ChatInputView;
 
-public class ChatInputViewImpl implements ChatInputView, MvpView {
+public class ChatInputViewImpl implements ChatInputView {
 
     private final ChatTextInputView mInput;
     @NonNull
-    private final ChatInputPresenter mPresenter;
+    private final ChatInputPresenter<ExampleMessage> mPresenter;
 
-    public ChatInputViewImpl(@NonNull ViewFinder viewFinder,
-                             @NonNull PresenterFactory<ChatInputView, ChatInputPresenter> presenterFactory) {
+    public ChatInputViewImpl(@NonNull String conversationId,
+                             @NonNull ViewFinder viewFinder,
+                             @NonNull PresenterFactory<ChatInputView, ChatInputPresenter<ExampleMessage>> presenterFactory) {
         mPresenter = presenterFactory.init(this);
         mInput = viewFinder.findViewById(R.id.chat_input);
-        mInput.setOnSendClickListener(v -> mPresenter.onSendMessage(mInput.getText()));
-        mInput.setOnActionItemClickedListener(item -> {
-            if (item.getItemId() == R.id.action_attachPhoto) {
-                mPresenter.onPickImage();
-            }
-            else if (item.getItemId() == R.id.action_takePhoto) {
-                mPresenter.onTakePhoto();
-            }
-            return true;
-        });
-        mInput.setOnTypingListener(mPresenter::onUserTyping);
-
+        mInput.setOnSendClickListener(v -> mPresenter.onSendMessage(ExampleMessage.createOutgoingTextMessage(conversationId, mInput.getText())));
     }
 
     @Override

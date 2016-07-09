@@ -8,18 +8,18 @@ import com.badoo.chateau.core.repos.conversations.ConversationQueries;
 import rx.Observable;
 
 /**
- * Use case for retrieving all conversations that the current user is involved in.
+ * Use case for subscribing to conversation updates
  */
 @UseCase
-public class LoadMyConversations {
+public class SubscribeToConversationUpdates {
 
-    private Repository<? extends Conversation> mConversationRepository;
+    private Repository<?> mConversationRepository;
 
-    public LoadMyConversations(Repository<? extends Conversation> conversationRepository) {
+    public SubscribeToConversationUpdates(Repository<? extends Conversation> conversationRepository) {
         mConversationRepository = conversationRepository;
     }
 
     public Observable<Boolean> execute() {
-        return mConversationRepository.query(ConversationQueries.LoadConversationsQuery.query());
+        return mConversationRepository.query(new ConversationQueries.SubscribeToUpdatesQuery());
     }
 }

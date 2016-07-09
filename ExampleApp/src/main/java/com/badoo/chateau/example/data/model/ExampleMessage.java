@@ -2,9 +2,12 @@ package com.badoo.chateau.example.data.model;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
 
 import com.badoo.chateau.data.models.BaseMessage;
+import com.badoo.chateau.data.models.payloads.ImagePayload;
 import com.badoo.chateau.data.models.payloads.Payload;
+import com.badoo.chateau.data.models.payloads.TextPayload;
 import com.badoo.chateau.data.models.payloads.TimestampPayload;
 
 /**
@@ -24,6 +27,14 @@ public class ExampleMessage extends BaseMessage {
 
     public static ExampleMessage createFailedMessage(ExampleMessage temporaryMessage) {
         return new ExampleMessage(temporaryMessage.getId(), temporaryMessage.getLocalId(), temporaryMessage.isFromMe(), temporaryMessage.getFrom(), temporaryMessage.getPayload(), temporaryMessage.getTimestamp(), true);
+    }
+
+    public static ExampleMessage createOutgoingPhotoMessage(@NonNull String conversationId, @NonNull String uri) {
+        return new ExampleMessage(UNKNOWN_ID, generateLocalId(conversationId), true, UNKNOWN_ID, new ImagePayload(uri), System.currentTimeMillis(), false);
+    }
+
+    public static ExampleMessage createOutgoingTextMessage(@NonNull String conversationId, @NonNull String message) {
+        return new ExampleMessage(UNKNOWN_ID, generateLocalId(conversationId), true, UNKNOWN_ID, new TextPayload(message), System.currentTimeMillis(), false);
     }
 
     public ExampleMessage(@NonNull String id, @Nullable String localId, boolean fromMe, @NonNull String from, @NonNull Payload payload, long timestamp, boolean failedToSend) {
@@ -46,6 +57,10 @@ public class ExampleMessage extends BaseMessage {
      */
     public boolean isUnconfirmed() {
         return UNKNOWN_ID.equals(getId());
+    }
+
+    private static String generateLocalId(@NonNull String conversationId) {
+        return conversationId + "-" + System.currentTimeMillis();
     }
 
     @Override

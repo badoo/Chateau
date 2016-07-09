@@ -1,5 +1,8 @@
 package com.badoo.barf.mvp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import rx.Subscription;
 import rx.subscriptions.CompositeSubscription;
 
@@ -9,18 +12,13 @@ import rx.subscriptions.CompositeSubscription;
  */
 public abstract class BaseRxPresenter implements MvpPresenter {
 
-    private final CompositeSubscription mTrackedSubscriptions = new CompositeSubscription();
+    private List<Subscription> mSubscriptions = new ArrayList<>();
 
     /**
      * Add a subscription to be tracked such that when this presenter is destroyed the subscription will be unsubscribed from.
      */
-    public Subscription trackSubscription(Subscription subscription) {
-        mTrackedSubscriptions.add(subscription);
-        return subscription;
-    }
-
-    @Override
-    public void onCreate() {
+    public void manage(Subscription subscription) {
+        mSubscriptions.add(subscription);
     }
 
     @Override
@@ -29,14 +27,10 @@ public abstract class BaseRxPresenter implements MvpPresenter {
 
     @Override
     public void onStop() {
-    }
-
-    /**
-     * Unsubscribes any tracked subscriptions.
-     */
-    @Override
-    public void destroy() {
-        mTrackedSubscriptions.unsubscribe();
+        for (Subscription subscription : mSubscriptions) {
+            subscription.unsubscribe();
+        }
+        mSubscriptions.clear();
     }
 
 }

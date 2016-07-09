@@ -48,7 +48,7 @@ public class NameGroupPresenterImpl<C extends Conversation> extends BaseRxPresen
                 throwable -> {
                     throw new IllegalStateException("Can't create chat????", throwable);
                 });
-        trackSubscription(createGroupSub);
+        manage(createGroupSub);
     }
 
 }

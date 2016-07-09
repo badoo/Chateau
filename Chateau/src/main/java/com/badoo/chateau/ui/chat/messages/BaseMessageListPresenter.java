@@ -1,130 +1,157 @@
 package com.badoo.chateau.ui.chat.messages;
 
-import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.badoo.barf.mvp.BaseRxPresenter;
 import com.badoo.barf.rx.ScheduleOn;
-import com.badoo.chateau.core.model.Conversation;
 import com.badoo.chateau.core.model.Message;
-import com.badoo.chateau.core.model.User;
-import com.badoo.chateau.core.usecases.conversations.GetConversation;
+import com.badoo.chateau.core.repos.messages.MessageDataSource.Update;
 import com.badoo.chateau.core.usecases.conversations.MarkConversationRead;
-import com.badoo.chateau.core.usecases.istyping.SubscribeToUsersTyping;
 import com.badoo.chateau.core.usecases.messages.LoadMessages;
-import com.badoo.chateau.core.usecases.messages.SubscribeToMessages;
+import com.badoo.chateau.core.usecases.messages.SendMessage;
+import com.badoo.chateau.core.usecases.messages.SubscribeToMessageUpdates;
 
+import java.util.Collections;
 import java.util.List;
 
-import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
 
-public class BaseMessageListPresenter<M extends Message, C extends Conversation, U extends User>
-    extends BaseRxPresenter implements MessageListPresenter {
+import static com.badoo.chateau.core.repos.messages.MessageDataSource.Update.Action;
+
+public class BaseMessageListPresenter<M extends Message>
+    extends BaseRxPresenter implements MessageListPresenter<M> {
 
     private static final String TAG = BaseMessageListPresenter.class.getSimpleName();
 
     @NonNull
-    private final String mChatId;
+    private final String mConversationId;
     @NonNull
-    private final MessageListView<M, C> mView;
-    @NonNull
-    private final MessageListFlowListener mFlowListener;
-    @Nullable
-    private M mOldestMessage = null;
-    private boolean mCanLoadMore = true;
+    private final MessageListView<M> mView;
+
+    private boolean mCanLoadOlder = true;
 
     // Use cases
     @NonNull
     private LoadMessages<M> mLoadMessages;
     @NonNull
-    private final SubscribeToMessages<M> mSubscribeToMessages;
+    private final SubscribeToMessageUpdates<M> mSubscribeToMessageUpdates;
     @NonNull
     private final MarkConversationRead mMarkConversationRead;
     @NonNull
-    private final GetConversation<C> mGetConversation;
-    @NonNull
-    private final SubscribeToUsersTyping<U> mSubscribeToUsersTyping;
+    private final SendMessage<M> mSendMessage;
 
-    public BaseMessageListPresenter(@NonNull String chatId,
-                                    @NonNull MessageListView<M, C> view,
-                                    @NonNull MessageListFlowListener flowListener,
+    public BaseMessageListPresenter(@NonNull String conversationId,
+                                    @NonNull MessageListView<M> view,
                                     @NonNull LoadMessages<M> loadMessages,
-                                    @NonNull SubscribeToMessages<M> subscribeToMessages,
+                                    @NonNull SubscribeToMessageUpdates<M> subscribeToMessageUpdates,
                                     @NonNull MarkConversationRead markConversationRead,
-                                    @NonNull GetConversation<C> getConversation,
-                                    @NonNull SubscribeToUsersTyping<U> subscribeToUsersTyping) {
-        mChatId = chatId;
+                                    @NonNull SendMessage<M> sendMessage) {
+        mConversationId = conversationId;
         mView = view;
-        mFlowListener = flowListener;
         mLoadMessages = loadMessages;
-        mSubscribeToMessages = subscribeToMessages;
+        mSubscribeToMessageUpdates = subscribeToMessageUpdates;
         mMarkConversationRead = markConversationRead;
-        mGetConversation = getConversation;
-        mSubscribeToUsersTyping = subscribeToUsersTyping;
+        mSendMessage = sendMessage;
     }
 
     @Override
-    public void onCreate() {
-        final Subscription getConversationSub = mGetConversation.execute(mChatId)
-            .compose(ScheduleOn.io())
-            .subscribe(mView::showConversation, this::onFatalError);
-
-        final Subscription messagesSub = mSubscribeToMessages.execute(mChatId)
-            .compose(ScheduleOn.io())
-            .subscribe(this::onMessages, this::onNonFatalError);
-
-        final Subscription otherUserTypingSub = mSubscribeToUsersTyping.execute(mChatId)
-            .compose(ScheduleOn.io())
-            .subscribe((user) -> {
-                mView.showOtherUserTyping();
-            }, this::onNonFatalError);
-
-        trackSubscription(messagesSub);
-        trackSubscription(getConversationSub);
-        trackSubscription(otherUserTypingSub);
-
-        loadChatMessages(null);
-        markConversationRead();
+    public void onStart() {
+        super.onStart();
+        // Setup subscriptions
+        manage(mSubscribeToMessageUpdates.forConversation(mConversationId)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(this::onUpdate, this::onNonFatalError));
+        // Request data
+        reload();
     }
 
-    private void onMessages(List<M> messages) {
-        if (!messages.isEmpty()) {
-            mOldestMessage = messages.get(0);
+    private void onUpdate(Update<M> update) {
+        if (update.getAction() == Action.ADDED) {
+            onNewerLoaded(Collections.singletonList(update.getNewMessage()));
         }
-        mView.showMessages(messages);
-        markConversationRead();
+        else if (update.getAction() == Action.UPDATED) {
+            onReplace(update.getOldMessage(), update.getNewMessage());
+        }
+        else if (update.getAction() == Action.INVALIDATE_ALL) {
+            reload();
+        }
     }
 
     @Override
     public void onMoreMessagesRequired() {
-        if (!mCanLoadMore) {
-            return;
+        if (mCanLoadOlder) {
+            loadOlder();
         }
-        loadChatMessages(mOldestMessage);
     }
 
     @Override
-    public void onImageClicked(@NonNull Uri uri) {
-        mFlowListener.requestOpenImage(uri);
+    public void onResendClicked(@NonNull M message) {
+        manage(mSendMessage.execute(mConversationId, message).subscribe());
     }
 
-    private void loadChatMessages(@Nullable M lastMessage) {
-        mView.showLoadingMoreMessages(true);
-        Subscription sub = mLoadMessages.execute(mChatId, lastMessage)
-            .compose(ScheduleOn.io())
-            .subscribe(hasMoreData -> {
-                mCanLoadMore = hasMoreData;
+    protected void reload() {
+        // We need to put this in some point if the view is empty.  But if it's shown even for a second and then hidden when coming
+        // back it fucks up the transition animation
+        //mView.showLoadingMoreMessages(true);
+        manage(mLoadMessages.all(mConversationId)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(result -> {
                 mView.showLoadingMoreMessages(false);
-            }, this::onFatalError);
-        trackSubscription(sub);
+                mCanLoadOlder = result.canLoadOlder();
+                onReloaded(result.getMessages());
+                if (result.canLoadNewer()) {
+                    loadNewer();
+                }
+            }, this::onFatalError));
+    }
+
+    protected void onReloaded(List<M> messages) {
+        markConversationRead();
+        mView.showMessages(messages);
+    }
+
+    protected void loadNewer() {
+        manage(mLoadMessages.newer(mConversationId)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(result -> {
+                onNewerLoaded(result.getMessages());
+                if (result.canLoadNewer()) {
+                    loadNewer();
+                }
+            }, this::onFatalError));
+    }
+
+    protected void onNewerLoaded(List<M> messages) {
+        markConversationRead();
+        mView.showNewerMessages(messages);
+    }
+
+    protected void loadOlder() {
+        mCanLoadOlder = false;
+        mView.showLoadingMoreMessages(true);
+        manage(mLoadMessages.older(mConversationId)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(result -> {
+                mCanLoadOlder = result.canLoadOlder();
+                mView.showLoadingMoreMessages(false);
+                onOlderLoaded(result.getMessages());
+            }, this::onFatalError));
+    }
+
+    protected void onOlderLoaded(List<M> messages) {
+        mView.showOlderMessages(messages);
+    }
+
+    protected void onReplace(@NonNull M oldMessage, @NonNull M newMessage) {
+        mView.replaceMessage(oldMessage, newMessage);
     }
 
     private void markConversationRead() {
-        trackSubscription(mMarkConversationRead.execute(mChatId)
-            .compose(ScheduleOn.io())
-            .subscribe(conversation -> { }, this::onNonFatalError));
+        manage(mMarkConversationRead.execute(mConversationId)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(conversation -> {
+            }, this::onNonFatalError));
     }
 
     private void onFatalError(Throwable throwable) {

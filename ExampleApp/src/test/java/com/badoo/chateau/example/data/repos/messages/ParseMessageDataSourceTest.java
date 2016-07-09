@@ -1,12 +1,14 @@
 package com.badoo.chateau.example.data.repos.messages;
 
 import android.support.annotation.NonNull;
+import android.support.v4.content.LocalBroadcastManager;
 
+import com.badoo.chateau.core.repos.messages.MessageDataSource.Update;
 import com.badoo.chateau.core.repos.messages.MessageQueries;
-import com.badoo.chateau.data.models.payloads.TextPayload;
 import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.chateau.example.data.repos.messages.ParseMessageDataSource.ImageUploader;
 import com.badoo.chateau.example.data.util.ParseHelper;
+import com.badoo.chateau.example.data.util.ParseUtils;
 import com.badoo.chateau.example.data.util.ParseUtils.MessagesTable;
 import com.badoo.unittest.rx.BaseRxTestCase;
 import com.parse.ParseObject;
@@ -18,8 +20,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import java.util.List;
 
 import rx.Observable;
 import rx.observers.TestSubscriber;
@@ -39,39 +39,45 @@ public class ParseMessageDataSourceTest extends BaseRxTestCase {
     private ImageUploader mImageUploader;
     @Mock
     private ParseHelper mMockParseHelper;
+    @Mock
+    private LocalBroadcastManager mBroadcastManager;
+    @Mock
+    private ParseUser mUser;
 
     private ParseMessageDataSource mTarget;
 
     // Use to listen for publishes of sent messages
-    private Observable<List<ExampleMessage>> mMessages;
+    private Observable<Update<ExampleMessage>> mUpdates;
 
     @Before
     public void beforeTest() {
         super.beforeTest();
-        mTarget = new ParseMessageDataSource(mImageUploader, mMockParseHelper);
-        mMessages = mTarget.subscribeToMessages(new MessageQueries.SubscribeToMessagesQuery<>(TEST_CHAT_ID));
+        mTarget = new ParseMessageDataSource(mBroadcastManager, mImageUploader, mMockParseHelper);
+        mUpdates = mTarget.subscribe(new MessageQueries.SubscribeQuery<>(TEST_CHAT_ID));
         mockCurrentUser("userId");
     }
 
     @Test
     public void sendTextMessage() {
         // Setup
-        final TextPayload textPayload = new TextPayload("Hello world");
-        final MessageQueries.SendMessageQuery message = new MessageQueries.SendMessageQuery(TEST_CHAT_ID, textPayload.getMessage(), null);
-        final TestSubscriber<List<ExampleMessage>> testSubscriber = new TestSubscriber<>();
+        ExampleMessage message = ExampleMessage.createOutgoingTextMessage(TEST_CHAT_ID, "Hello world");
+        final MessageQueries.SendQuery<ExampleMessage> sendQuery = new MessageQueries.SendQuery<>(TEST_CHAT_ID, message);
+        final TestSubscriber<Update<ExampleMessage>> testSubscriber = new TestSubscriber<>();
 
         // Execute
-        mMessages.subscribe(testSubscriber);
-        mTarget.sendMessage(message);
+        mUpdates.subscribe(testSubscriber);
+        mTarget.send(sendQuery).subscribe();
 
         // Assert
-        verify(mMockParseHelper).saveInBackground(argThat(new CustomMatcher<ParseObject>("") {
+        verify(mMockParseHelper).save(argThat(new CustomMatcher<ParseObject>("") {
             @Override
             public boolean matches(Object item) {
-                return ((ParseObject) item).getClassName().equals(MessagesTable.NAME);
+                final ParseObject parseMessage = (ParseObject) item;
+
+                return parseMessage.getClassName().equals(MessagesTable.NAME);
             }
-        }), any());
-        testSubscriber.assertValueCount(1);
+        }));
+        testSubscriber.assertValueCount(2);
     }
 
     private ParseUser mockCurrentUser(@NonNull String userId) {

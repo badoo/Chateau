@@ -55,7 +55,7 @@ public class LoginPresenterImpl<U extends User> extends BaseRxPresenter implemen
                     mView.hideProgress();
                     onFatalError(throwable);
                 });
-            trackSubscription(loginSub);
+            manage(loginSub);
         }
     }
 

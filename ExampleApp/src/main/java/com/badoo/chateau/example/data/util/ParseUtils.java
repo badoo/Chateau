@@ -137,17 +137,15 @@ public class ParseUtils {
             in.getString(UsersTable.Fields.DISPLAY_NAME));
     }
 
-    public static ExampleMessage baseMessageFromParseObject(ParseObject o) {
+    public static ExampleMessage from(ParseObject o, ParseHelper parseHelper) {
         if (o == null) {
             return null;
         }
         try {
-            // TODO Refactor to factory strategy factory!
-            // TODO Really important, don't forgot!
             final String id = o.getObjectId();
             final String localId = o.has(MessagesTable.Fields.LOCAL_ID) ? o.getString(MessagesTable.Fields.LOCAL_ID) : null;
             final String from = o.getParseObject(MessagesTable.Fields.FROM).getObjectId();
-            final long timestamp = o.getCreatedAt().getTime();
+            final long timestamp = o.getCreatedAt() != null? o.getCreatedAt().getTime() : 0;
             final Payload payload;
             final String type = o.getString(MessagesTable.Fields.TYPE);
             if (MessagesTable.Types.IMAGE.equals(type)) {
@@ -168,7 +166,7 @@ public class ParseUtils {
             else {
                 payload = new TextPayload(o.getString(MessagesTable.Fields.MESSAGE));
             }
-            final boolean fromMe = ParseUser.getCurrentUser().getObjectId().equals(from);
+            final boolean fromMe = parseHelper.getCurrentUser().getObjectId().equals(from);
             return new ExampleMessage(id, localId, fromMe, from, payload, timestamp, false);
         }
         catch (Exception e) {
@@ -176,25 +174,25 @@ public class ParseUtils {
         }
     }
 
-    public static ExampleConversation conversationFromChat(ParseObject chat) {
+    public static ExampleConversation conversationFromChat(ParseObject chat, ParseHelper helper) {
         String name = chat.getString(ChatTable.Fields.NAME);
         List<BaseUser> users = Collections.emptyList(); // TODO: Populate!
         int unread = 0;
         return new ExampleConversation(chat.getObjectId(),
             name,
             users,
-            baseMessageFromParseObject((ParseObject) chat.get(ChatTable.Fields.LAST_MESSAGE)),
+            from((ParseObject) chat.get(ChatTable.Fields.LAST_MESSAGE), helper),
             unread);
     }
 
-    public static ExampleConversation conversationFromSubscription(ParseObject subscription) {
+    public static ExampleConversation conversationFromSubscription(ParseObject subscription, ParseHelper helper) {
         final ParseObject chatParseObject = subscription.getParseObject(ChatSubscriptionTable.Fields.CHAT);
         if (chatParseObject.isDataAvailable()) {
             final String name = TextUtils.isEmpty(chatParseObject.getString(ChatTable.Fields.NAME)) ? subscription.getString(ChatSubscriptionTable.Fields.NAME) : chatParseObject.getString(ChatTable.Fields.NAME);
             final List<BaseUser> users = Collections.emptyList(); // TODO: Populate!
             int unread = chatParseObject.getInt(ChatTable.Fields.MESSAGE_COUNT) - subscription.getInt(ChatSubscriptionTable.Fields.LAST_SEEN_COUNT);
             final boolean hasLastMessage = chatParseObject.has(ChatTable.Fields.LAST_MESSAGE) && chatParseObject.getParseObject(ChatTable.Fields.LAST_MESSAGE).isDataAvailable();
-            final ExampleMessage lastMessage = hasLastMessage ? baseMessageFromParseObject(chatParseObject.getParseObject(ChatTable.Fields.LAST_MESSAGE)) : null;
+            final ExampleMessage lastMessage = hasLastMessage ? from(chatParseObject.getParseObject(ChatTable.Fields.LAST_MESSAGE), helper) : null;
             return new ExampleConversation(chatParseObject.getObjectId(),
                 name,
                 users,

@@ -18,7 +18,7 @@ import com.badoo.barf.mvp.PresenterFactory;
 import com.badoo.chateau.example.R;
 import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.chateau.example.ui.BaseActivity;
-import com.badoo.chateau.example.ui.util.BindableViewHolder;
+import com.badoo.chateau.extras.recycle.BindableViewHolder;
 import com.badoo.chateau.extras.MultiSelectionHelper;
 import com.badoo.chateau.extras.ViewFinder;
 import com.badoo.chateau.ui.conversations.create.selectusers.UserListPresenter;

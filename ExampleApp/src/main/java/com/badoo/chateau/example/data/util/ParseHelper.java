@@ -136,6 +136,15 @@ public class ParseHelper {
         msg.saveInBackground(callback);
     }
 
+    public void save(@NonNull ParseObject msg) {
+        try {
+            msg.save();
+        }
+        catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * Simple implementation of ParseRequest where the result of the network call is published to the subscriber directly.
      */

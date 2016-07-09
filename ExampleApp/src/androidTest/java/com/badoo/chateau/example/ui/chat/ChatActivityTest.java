@@ -11,17 +11,19 @@ import com.badoo.chateau.data.models.payloads.Payload;
 import com.badoo.chateau.data.models.payloads.TextPayload;
 import com.badoo.chateau.example.BaseTestCase;
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.chateau.example.ui.Injector;
+import com.badoo.chateau.example.ui.chat.info.ExampleChatInfoPresenter;
+import com.badoo.chateau.example.ui.chat.input.ExampleChatInputPresenter;
+import com.badoo.chateau.example.ui.chat.istyping.ExampleIsTypingPresenter;
+import com.badoo.chateau.example.ui.chat.messages.ExampleMessageListPresenter;
 import com.badoo.chateau.example.ui.chat.messages.ExampleMessageListView;
-import com.badoo.chateau.ui.chat.input.ChatInputPresenter;
-import com.badoo.chateau.ui.chat.messages.MessageListPresenter;
-import com.badoo.chateau.ui.chat.messages.MessageListPresenter.MessageListFlowListener;
-import com.badoo.chateau.ui.chat.messages.MessageListPresenter.MessageListView;
+import com.badoo.chateau.ui.chat.photos.PhotoPresenter;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +36,6 @@ import static android.support.test.espresso.action.ViewActions.typeText;
 import static android.support.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition;
 import static android.support.test.espresso.contrib.RecyclerViewActions.scrollToPosition;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static com.badoo.chateau.ui.chat.input.ChatInputPresenter.ChatInputFlowListener;
 import static com.badoo.chateau.ui.chat.input.ChatInputPresenter.ChatInputView;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -46,9 +47,12 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
     private static final String CHAT_NAME = "chatName";
     private static final String MESSAGE = "message";
 
-    private MessageListPresenter mListPresenter;
-    private ChatInputPresenter mInputPresenter;
+    private ExampleMessageListPresenter mListPresenter;
+    private ExampleChatInputPresenter mInputPresenter;
+    private PhotoPresenter mPhotoPresenter;
     private ExampleMessageListView mMessageListView;
+    private ExampleIsTypingPresenter mIsTypingPresenter;
+    private ExampleChatInfoPresenter mChatInfoPresenter;
 
     @Override
     protected Class<ChatActivity> getActivityClass() {
@@ -62,8 +66,11 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
 
     @Override
     protected void beforeActivityLaunched() {
-        mListPresenter = mock(MessageListPresenter.class);
-        mInputPresenter = mock(ChatInputPresenter.class);
+        mListPresenter = mock(ExampleMessageListPresenter.class);
+        mInputPresenter = mock(ExampleChatInputPresenter.class);
+        mPhotoPresenter = mock(PhotoPresenter.class);
+        mIsTypingPresenter = mock(ExampleIsTypingPresenter.class);
+        mChatInfoPresenter = mock(ExampleChatInfoPresenter.class);
         Injector.register(ChatActivity.class, new ChatActivity.DefaultConfiguration() {
 
             @Override
@@ -73,13 +80,28 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
             }
 
             @Override
-            protected MessageListPresenter createMessageListPresenter(@NonNull MessageListView<ExampleMessage, ExampleConversation> view, @NonNull MessageListFlowListener flowListener, @NonNull String chatId) {
+            protected ExampleMessageListPresenter createMessageListPresenter(@NonNull ExampleMessageListView view, @NonNull ExampleMessageListPresenter.ExampleMessageListFlowListener flowListener, @NonNull String chatId) {
                 return mListPresenter;
             }
 
             @Override
-            protected ChatInputPresenter createChatInputPresenter(@NonNull ChatInputView view, @NonNull ChatInputFlowListener flowListener, @NonNull String chatId) {
+            protected ExampleChatInputPresenter createTextInputPresenter(@NonNull ChatInputView view, @NonNull String conversationId) {
                 return mInputPresenter;
+            }
+
+            @Override
+            protected PhotoPresenter createPhotoPresenter(@NonNull PhotoPresenter.PhotoFlowListener flowListener) {
+                return mPhotoPresenter;
+            }
+
+            @Override
+            protected ExampleChatInfoPresenter createChatInfoPresenter(@NonNull ExampleChatInfoPresenter.ExampleChatInfoView v, @NonNull String conversationId) {
+                return mChatInfoPresenter;
+            }
+
+            @Override
+            protected ExampleIsTypingPresenter createIsTypingPresenter(@NonNull ExampleIsTypingPresenter.ExampleIsTypingView view, @NonNull String conversationId) {
+                return mIsTypingPresenter;
             }
         });
     }
@@ -90,7 +112,7 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
         onView(withId(R.id.chatTextInput_editText)).perform(typeText(MESSAGE));
 
         // Then
-        verify(mInputPresenter).onUserTyping();
+        verify(mIsTypingPresenter).onUserTyping();
     }
 
     @Test
@@ -100,7 +122,7 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
         onView(withId(R.id.chatTextInput_sendEnabled)).perform(click());
 
         // Then
-        verify(mInputPresenter).onSendMessage(MESSAGE);
+        verify(mInputPresenter).onSendMessage(Mockito.argThat(new PayloadMatcher(new TextPayload(MESSAGE))));
     }
 
     @Test
@@ -109,7 +131,7 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
         onView(withId(R.id.action_attachPhoto)).perform(click());
 
         // Then
-        verify(mInputPresenter).onPickImage();
+        verify(mPhotoPresenter).onPickPhoto();
     }
 
     @Test
@@ -118,7 +140,7 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
         onView(withId(R.id.action_takePhoto)).perform(click());
 
         // Then
-        verify(mInputPresenter).onTakePhoto();
+        verify(mPhotoPresenter).onTakePhoto();
     }
 
     @Test
@@ -177,5 +199,20 @@ public class ChatActivityTest extends BaseTestCase<ChatActivity> {
         return messages;
     }
 
+    private static class PayloadMatcher extends ArgumentMatcher<ExampleMessage> {
+
+        @NonNull
+        private final Payload mExpected;
+
+        public PayloadMatcher(@NonNull Payload expected) {
+            mExpected = expected;
+        }
+
+        @Override
+        public boolean matches(Object argument) {
+            ExampleMessage other = (ExampleMessage) argument;
+            return mExpected.equals(other.getPayload());
+        }
+    }
 
 }

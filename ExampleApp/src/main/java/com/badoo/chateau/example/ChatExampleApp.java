@@ -123,12 +123,12 @@ public class ChatExampleApp extends Application {
         HandlesUtil.registerHandlersFromAnnotations(conversationRepository, parseConversationDataSource);
         Broadcaster.ConversationUpdatedReceiver pullLatestMessagesReceiver = new Broadcaster.ConversationUpdatedReceiver() {
             @Override
-            public void onConversationUpdated(@NonNull String chatId, long timestamp) {
-                parseConversationDataSource.reloadConversation(chatId);
+            public void onConversationUpdated(@NonNull String conversationId, long timestamp) {
+                parseConversationDataSource.reloadConversation(conversationId);
             }
 
             @Override
-            public void onImageUploaded(@NonNull String chatId, @NonNull String messageId) {
+            public void onImageUploaded(@NonNull String conversationId, @NonNull String messageId) {
                 // Not used
             }
         };
@@ -146,24 +146,10 @@ public class ChatExampleApp extends Application {
     private Repository<ExampleMessage> createMessageRepo() {
         final DelegatingRepository<ExampleMessage> messageRepository = new DelegatingRepository<>();
         final ParseMessageDataSource.ImageUploader imageUploader = (localId, uri) -> startService(ImageUploadService.createIntent(getApplicationContext(), localId, uri));
-        final ParseMessageDataSource networkDataSource = new ParseMessageDataSource(imageUploader, ParseHelper.INSTANCE);
+        final ParseMessageDataSource networkDataSource = new ParseMessageDataSource(LocalBroadcastManager.getInstance(this), imageUploader, ParseHelper.INSTANCE);
         final ExampleMessageMemoryDataSource messageMemoryDataSource = new ExampleMessageMemoryDataSource(networkDataSource);
 
         HandlesUtil.registerHandlersFromAnnotations(messageRepository, messageMemoryDataSource);
-        Broadcaster.ConversationUpdatedReceiver pullLatestMessagesReceiver = new Broadcaster.ConversationUpdatedReceiver() {
-
-            @Override
-            public void onConversationUpdated(@NonNull String chatId, long timestamp) {
-                networkDataSource.loadLatestMessages(chatId, timestamp);
-
-            }
-
-            @Override
-            public void onImageUploaded(@NonNull String chatId, @NonNull String messageId) {
-                networkDataSource.updateMessage(chatId, messageId);
-            }
-        };
-        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(pullLatestMessagesReceiver, Broadcaster.getConversationUpdatedFilter());
         return messageRepository;
     }
 

@@ -68,9 +68,9 @@ public class Broadcaster {
     /**
      * Sends a broadcast to notify that an image finished uploading (in one of the conversations that the user is taking part in)
      */
-    public void imageUploaded(@NonNull String chatId, @NonNull String messageId) {
+    public void imageUploaded(@NonNull String conversationId, @NonNull String messageId) {
         Intent intent = new Intent(ACTION_IMAGE_UPLOADED);
-        intent.putExtra(ARG_CHAT_ID, chatId);
+        intent.putExtra(ARG_CHAT_ID, conversationId);
         intent.putExtra(ARG_MESSAGE_ID, messageId);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
     }
@@ -78,10 +78,10 @@ public class Broadcaster {
     /**
      * Sends a broadcast to notify that another user is typing in a conversation
      */
-    public void otherUserTyping(@NonNull String userId, @NonNull String chatId) {
+    public void otherUserTyping(@NonNull String userId, @NonNull String conversationId) {
         Intent intent = new Intent(ACTION_OTHER_USER_TYPING);
         intent.putExtra(ARG_USER_ID, userId);
-        intent.putExtra(ARG_CHAT_ID, chatId);
+        intent.putExtra(ARG_CHAT_ID, conversationId);
         LocalBroadcastManager.getInstance(mContext).sendBroadcast(intent);
     }
 
@@ -107,9 +107,9 @@ public class Broadcaster {
             }
         }
 
-        public abstract void onConversationUpdated(@NonNull String chatId, long timestamp);
+        public abstract void onConversationUpdated(@NonNull String conversationId, long timestamp);
 
-        protected abstract void onImageUploaded(@NonNull String chatId, @NonNull String messageId);
+        protected abstract void onImageUploaded(@NonNull String conversationId, @NonNull String messageId);
     }
 
     public abstract static class OtherUserTypingReceiver extends BroadcastReceiver {

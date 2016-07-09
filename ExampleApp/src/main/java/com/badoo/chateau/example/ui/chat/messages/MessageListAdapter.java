@@ -11,6 +11,8 @@ import android.view.ViewGroup;
 import com.badoo.chateau.data.models.payloads.Payload;
 import com.badoo.chateau.example.data.model.ExampleMessage;
 import com.badoo.chateau.example.ui.util.MessageViewHolder;
+import com.badoo.chateau.extras.recycle.ViewHolderFactory;
+import com.badoo.chateau.extras.recycle.ViewHolderFactoryResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +68,33 @@ class MessageListAdapter extends RecyclerView.Adapter<MessageViewHolder> {
         mMessages.clear();
         mMessages.addAll(processedMessages);
         notifyDataSetChanged();
+    }
+
+    public void addNewMessages(@NonNull List<ExampleMessage> messages) {
+        final int oldSize = mMessages.size();
+        mMessages.addAll(messages);
+        notifyItemRangeInserted(oldSize, messages.size());
+    }
+
+    public void addOldMessages(@NonNull List<ExampleMessage> messages) {
+        mMessages.addAll(0, messages);
+        notifyItemRangeInserted(0, messages.size());
+    }
+
+    public void replaceMessage(@Nullable ExampleMessage oldMessage, @NonNull ExampleMessage newMessage) {
+        if (oldMessage == null) {
+            oldMessage = newMessage;
+        }
+        for (int i = mMessages.size() - 1; i >= 0; i--) {
+            ExampleMessage candidate = mMessages.get(i);
+            final boolean replacingLocalMessage = candidate.isUnconfirmed() && candidate.getLocalId().equals(oldMessage.getLocalId());
+            final boolean replacingConfirmedMessage = !candidate.isUnconfirmed() && candidate.getId().equals(oldMessage.getId());
+            if (replacingLocalMessage || replacingConfirmedMessage) {
+                mMessages.set(i, newMessage);
+                notifyItemChanged(i);
+                return;
+            }
+        }
     }
 
     /**
@@ -145,6 +174,9 @@ class MessageListAdapter extends RecyclerView.Adapter<MessageViewHolder> {
         return mFactoryResolver.getIdForType(message.getPayload().getClass());
     }
 
+    /**
+     * Item click listener handling both normal and long presses
+     */
     public interface ItemClickListener {
 
         void onClick(@NonNull ExampleMessage message);

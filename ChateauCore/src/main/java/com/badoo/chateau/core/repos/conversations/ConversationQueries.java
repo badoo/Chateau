@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 
 import com.badoo.barf.data.repo.Query;
 import com.badoo.chateau.core.model.Conversation;
+import com.badoo.chateau.core.repos.conversations.ConversationDataSource.LoadResult;
 
 import java.util.List;
 
@@ -17,71 +18,73 @@ public abstract class ConversationQueries {
     /**
      * Query that returns all the conversations of the current user
      */
-    public static class LoadConversationsQuery<C extends Conversation> implements Query<Boolean> {
+    public static class LoadConversationsQuery<C extends Conversation> implements Query<LoadResult<C>> {
 
-        public static <C extends Conversation> LoadConversationsQuery<C> query() {
-            return new LoadConversationsQuery<>();
-        }
-
-        public static <C extends Conversation> LoadConversationsQuery<C> queryBefore(C chunkBefore) {
-            return new LoadConversationsQuery<C>().setChunkBefore(chunkBefore);
-        }
-
-        public static <C extends Conversation> LoadConversationsQuery<C> queryAfter(C chunkAfter) {
-            return new LoadConversationsQuery<C>().setChunkAfter(chunkAfter);
+        public enum Type {
+            ALL,
+            NEWER,
+            OLDER
         }
 
         @Nullable
-        private C mChunkBefore;
+        private final C mOldest;
         @Nullable
-        private C mChunkAfter;
+        private final C mNewest;
+        @NonNull
+        private final Type mType;
 
-        private LoadConversationsQuery() { }
+        public LoadConversationsQuery(@NonNull Type type) {
+            this(type, null, null);
+        }
 
-        private LoadConversationsQuery<C> setChunkBefore(@Nullable C chunkBefore) {
-            mChunkBefore = chunkBefore;
-            return this;
+        public LoadConversationsQuery(@NonNull Type type, @Nullable C oldest, @Nullable C newest) {
+            mOldest = oldest;
+            mNewest = newest;
+            mType = type;
         }
 
         @Nullable
-        public C getChunkBefore() {
-            return mChunkBefore;
-        }
-
-        private LoadConversationsQuery<C> setChunkAfter(@Nullable C chunkAfter) {
-            mChunkAfter = chunkAfter;
-            return this;
+        public C getOldest() {
+            return mOldest;
         }
 
         @Nullable
-        public C getChunkAfter() {
-            return mChunkAfter;
+        public C getNewest() {
+            return mNewest;
+        }
+
+        @NonNull
+        public Type getType() {
+            return mType;
         }
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof LoadConversationsQuery)) return false;
+            if (o == null || getClass() != o.getClass()) return false;
 
             LoadConversationsQuery<?> that = (LoadConversationsQuery<?>) o;
 
-            if (mChunkBefore != null ? !mChunkBefore.equals(that.mChunkBefore) : that.mChunkBefore != null) return false;
-            return mChunkAfter != null ? mChunkAfter.equals(that.mChunkAfter) : that.mChunkAfter == null;
+            if (mOldest != null ? !mOldest.equals(that.mOldest) : that.mOldest != null) return false;
+            if (mNewest != null ? !mNewest.equals(that.mNewest) : that.mNewest != null) return false;
+            return mType == that.mType;
 
         }
 
         @Override
         public int hashCode() {
-            int result = mChunkBefore != null ? mChunkBefore.hashCode() : 0;
-            result = 31 * result + (mChunkAfter != null ? mChunkAfter.hashCode() : 0);
+            int result = mOldest != null ? mOldest.hashCode() : 0;
+            result = 31 * result + (mNewest != null ? mNewest.hashCode() : 0);
+            result = 31 * result + mType.hashCode();
             return result;
         }
 
         @Override
         public String toString() {
-            return "GetConversationsQuery{" +
-                "mChunkBefore=" + mChunkBefore +
-                ", mChunkAfter=" + mChunkAfter +
+            return "LoadConversationsQuery{" +
+                "mOldest=" + mOldest +
+                ", mNewest=" + mNewest +
+                ", mDirection=" + mType +
                 '}';
         }
     }
@@ -89,11 +92,11 @@ public abstract class ConversationQueries {
     /**
      * Query that returns an Observable that will receive updates whenever a conversation is updated
      */
-    public static class SubscribeToConversations<C extends Conversation> implements Query<List<C>> {
+    public static class SubscribeToUpdatesQuery implements Query<Boolean> {
 
         @Override
         public boolean equals(Object o) {
-            return o != null && o instanceof SubscribeToConversations;
+            return o != null && o instanceof SubscribeToUpdatesQuery;
         }
 
         @Override

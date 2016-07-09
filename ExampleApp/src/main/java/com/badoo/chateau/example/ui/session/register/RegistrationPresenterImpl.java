@@ -57,7 +57,7 @@ public class RegistrationPresenterImpl<U extends User> extends BaseRxPresenter i
                 mView.hideProgress();
                 onFatalError(throwable);
             });
-            trackSubscription(registerSub);
+            manage(registerSub);
         }
     }
 

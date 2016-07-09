@@ -3,6 +3,7 @@ package com.badoo.chateau.example.data.repos.conversations;
 import android.support.annotation.NonNull;
 
 import com.badoo.chateau.core.repos.conversations.ConversationQueries;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries.LoadConversationsQuery.Type;
 import com.badoo.chateau.example.data.model.ExampleConversation;
 import com.badoo.chateau.example.data.util.ParseHelper;
 import com.badoo.chateau.example.data.util.ParseUtils.ChatSubscriptionTable;
@@ -73,14 +74,14 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
         final List<ParseObject> subscriptions = ModelTestHelper.createSubscriptions(10);
         when(mMockParseHelper.<List<ParseObject>>callFunction(GetMySubscriptionsFunc.NAME, Collections.emptyMap()))
             .thenReturn(Observable.just(subscriptions));
-        final TestSubscriber<List<ExampleConversation>> testSubscriber = new TestSubscriber<>();
-        mTarget.subscribeToConversations(new ConversationQueries.SubscribeToConversations()).subscribe(testSubscriber);
+        final TestSubscriber<Boolean> testSubscriber = new TestSubscriber<>();
+        mTarget.subscribe(new ConversationQueries.SubscribeToUpdatesQuery()).subscribe(testSubscriber);
 
         // Execute
-        executeTarget(mTarget.loadConversations(LoadConversationsQuery.query()));
+        executeTarget(mTarget.load(new LoadConversationsQuery<>(Type.ALL)));
 
         // Assert
-        assertThat(testSubscriber.getOnNextEvents().size(), is(1));
+        assertThat(testSubscriber.getOnNextEvents().size(), is(0));
     }
 
     @Test
@@ -94,7 +95,7 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
         when(mMockParseHelper.find(Mockito.<ParseQuery<ParseObject>>any())).thenReturn(Observable.just(subscriptions));
 
         // Execute
-        final TestSubscriber<ExampleConversation> testSubscriber = executeTarget(mTarget.getConversation(new GetConversationQuery(chatId)));
+        final TestSubscriber<ExampleConversation> testSubscriber = executeTarget(mTarget.get(new GetConversationQuery(chatId)));
 
         // Assert
         testSubscriber.assertCompleted();
@@ -124,7 +125,7 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
 
         // Execute
         final TestSubscriber<ExampleConversation> testSubscriber = executeTarget(
-            mTarget.createGroupConversation(new CreateGroupConversationQuery(userIds, groupName)));
+            mTarget.create(new CreateGroupConversationQuery(userIds, groupName)));
 
         // Assert
         testSubscriber.assertCompleted();
@@ -143,7 +144,7 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
 
         // Execute
         final TestSubscriber<ExampleConversation> testSubscriber = executeTarget(
-            mTarget.createConversation(new CreateConversationQuery("0")));
+            mTarget.create(new CreateConversationQuery("0")));
 
         // Assert
         testSubscriber.assertCompleted();
@@ -161,7 +162,7 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
 
         // Execute
         final TestSubscriber<Void> testSubscriber = executeTarget(
-            mTarget.markConversationRead(new MarkConversationReadQuery(chatId)));
+            mTarget.markRead(new MarkConversationReadQuery(chatId)));
 
         // Assert
         testSubscriber.assertCompleted();
@@ -189,7 +190,7 @@ public class ParseConversationDataSourceTest extends BaseRxTestCase {
         final List<ExampleConversation> conversations = ModelTestHelper.createConversations(10);
 
         // Execute
-        final TestSubscriber<Void> testSubscriber = executeTarget(mTarget.deleteConversations(new DeleteConversationsQuery<>(conversations)));
+        final TestSubscriber<?> testSubscriber = executeTarget(mTarget.delete(new DeleteConversationsQuery<>(conversations)));
 
         // Assert
         testSubscriber.assertCompleted();

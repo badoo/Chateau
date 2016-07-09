@@ -5,9 +5,9 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.badoo.chateau.example.R;
-import com.badoo.chateau.data.models.BaseMessage;
 import com.badoo.chateau.data.models.payloads.Payload;
 import com.badoo.chateau.example.data.model.ExampleMessage;
+import com.badoo.chateau.extras.recycle.BindableViewHolder;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -27,7 +27,7 @@ public abstract class MessageViewHolder<P extends Payload> extends BindableViewH
     }
 
     @Override
-    public final void bind(ExampleMessage message) {
+    public void bind(ExampleMessage message) {
         super.bind(message);
         //noinspection unchecked
         bindPayload(message, (P) message.getPayload());

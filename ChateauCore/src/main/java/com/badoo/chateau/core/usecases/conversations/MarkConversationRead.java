@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import com.badoo.barf.data.repo.Repository;
 import com.badoo.barf.usecase.UseCase;
 import com.badoo.chateau.core.model.Conversation;
-import com.badoo.chateau.core.repos.conversations.ConversationQueries;
+import com.badoo.chateau.core.repos.conversations.ConversationQueries.MarkConversationReadQuery;
 
 import rx.Observable;
 
@@ -22,7 +22,7 @@ public class MarkConversationRead {
     }
 
     public Observable<Void> execute(@NonNull String conversationId) {
-        return mConversationRepository.query(new ConversationQueries.MarkConversationReadQuery(conversationId));
+        return mConversationRepository.query(new MarkConversationReadQuery(conversationId));
     }
 }
 

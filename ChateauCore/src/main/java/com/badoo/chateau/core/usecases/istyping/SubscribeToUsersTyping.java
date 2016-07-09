@@ -5,7 +5,7 @@ import android.support.annotation.NonNull;
 import com.badoo.barf.data.repo.Repository;
 import com.badoo.barf.usecase.UseCase;
 import com.badoo.chateau.core.model.User;
-import com.badoo.chateau.core.repos.istyping.IsTypingQueries;
+import com.badoo.chateau.core.repos.istyping.IsTypingQueries.SubscribeToUsersTypingQuery;
 
 import rx.Observable;
 
@@ -22,6 +22,6 @@ public class SubscribeToUsersTyping<U extends User>  {
     }
 
     public Observable<U> execute(@NonNull String conversationId) {
-        return mRepository.query(new IsTypingQueries.SubscribeToUsersTypingQuery<>(conversationId));
+        return mRepository.query(new SubscribeToUsersTypingQuery<>(conversationId));
     }
 }

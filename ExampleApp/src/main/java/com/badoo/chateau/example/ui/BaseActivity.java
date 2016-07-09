@@ -52,7 +52,6 @@ public class BaseActivity extends AppCompatActivity {
      */
     public void registerPresenter(@NonNull MvpPresenter presenter) {
         mPresenters.add(presenter);
-        presenter.onCreate();
     }
 
     public void registerBackPressedListener(@NonNull BackPressedListener listener) {
@@ -73,14 +72,6 @@ public class BaseActivity extends AppCompatActivity {
         for (MvpPresenter presenter : mPresenters) {
             presenter.onStop();
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        for (MvpPresenter presenter : mPresenters) {
-            presenter.destroy();
-        }
-        super.onDestroy();
     }
 
     @Override

@@ -34,4 +34,8 @@
     <color name="actionButtonTint">#607d8b</color>
 
     <color name="error">#80FF0000</color>
+
+    <!-- Chat colors -->
+    <color name="bg_msg_sent">#400f58ff</color>
+    <color name="bg_msg_received">#60a0ffa0</color>
 </resources>

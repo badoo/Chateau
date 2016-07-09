@@ -1,16 +1,22 @@
 package com.badoo.chateau.example.ui.chat.messages;
 
+import android.support.annotation.NonNull;
+
+import com.badoo.chateau.core.model.Conversation;
+import com.badoo.chateau.core.model.Message;
+import com.badoo.chateau.core.repos.messages.MessageDataSource;
+import com.badoo.chateau.core.repos.messages.MessageDataSource.LoadResult;
+import com.badoo.chateau.core.repos.messages.MessageDataSource.Update;
 import com.badoo.chateau.core.usecases.conversations.GetConversation;
 import com.badoo.chateau.core.usecases.conversations.MarkConversationRead;
 import com.badoo.chateau.core.usecases.istyping.SubscribeToUsersTyping;
 import com.badoo.chateau.core.usecases.messages.LoadMessages;
-import com.badoo.chateau.core.usecases.messages.SubscribeToMessages;
-import com.badoo.chateau.example.data.model.ExampleConversation;
-import com.badoo.chateau.example.data.model.ExampleMessage;
+import com.badoo.chateau.core.usecases.messages.SendMessage;
+import com.badoo.chateau.core.usecases.messages.SubscribeToMessageUpdates;
 import com.badoo.chateau.example.data.model.ExampleUser;
 import com.badoo.chateau.ui.chat.messages.BaseMessageListPresenter;
 import com.badoo.chateau.ui.chat.messages.MessageListPresenter;
-import com.badoo.chateau.ui.chat.messages.MessageListPresenter.MessageListFlowListener;
+import com.badoo.chateau.ui.chat.messages.MessageListPresenter.MessageListView;
 import com.badoo.unittest.rx.BaseRxTestCase;
 
 import org.junit.Before;
@@ -28,7 +34,7 @@ import rx.subjects.PublishSubject;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isNull;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -36,35 +42,32 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class BaseMessageListPresenterTest extends BaseRxTestCase {
 
-    private static final String CHAT_ID = "chatId";
-
-    private MessageListPresenter mTarget;
+    private static final String CONVERSATION_ID = "chatId";
 
     @Mock
-    private ExampleMessageListView mView;
+    private MessageListView<TestMessage> mView;
     @Mock
-    private MessageListFlowListener mFlowListener;
+    private LoadMessages<TestMessage> mLoadMessages;
     @Mock
-    private LoadMessages<ExampleMessage> mLoadMessages;
-    @Mock
-    private SubscribeToMessages<ExampleMessage> mSubscribeToMessages;
+    private SubscribeToMessageUpdates<TestMessage> mSubscribeToMessageUpdates;
     @Mock
     private MarkConversationRead mMarkConversationRead;
     @Mock
-    private GetConversation<ExampleConversation> mGetConversation;
+    private GetConversation<TestConversation> mGetConversation;
     @Mock
     private SubscribeToUsersTyping<ExampleUser> mSubscribeToUsersTyping;
+    @Mock
+    private SendMessage<TestMessage> mSendMessage;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        mTarget = new BaseMessageListPresenter<>(CHAT_ID, mView, mFlowListener, mLoadMessages, mSubscribeToMessages, mMarkConversationRead, mGetConversation, mSubscribeToUsersTyping);
     }
 
     @Test
     public void noUseCasesInvokedFromConstructor() {
         verifyZeroInteractions(mLoadMessages);
-        verifyZeroInteractions(mSubscribeToMessages);
+        verifyZeroInteractions(mSubscribeToMessageUpdates);
         verifyZeroInteractions(mMarkConversationRead);
         verifyZeroInteractions(mGetConversation);
         verifyZeroInteractions(mSubscribeToUsersTyping);
@@ -73,82 +76,71 @@ public class BaseMessageListPresenterTest extends BaseRxTestCase {
     @Test
     public void messagesRequestedWhenPresenterCreated() {
         // Given
-        when(mGetConversation.execute(any())).thenReturn(Observable.just(new ExampleConversation("id", "name", Collections.emptyList(), null, 0)));
-        when(mLoadMessages.execute(eq(CHAT_ID), any())).thenReturn(Observable.empty());
-        when(mSubscribeToMessages.execute(any())).thenReturn(Observable.empty());
+        when(mGetConversation.execute(any())).thenReturn(Observable.just(new TestConversation()));
+        when(mLoadMessages.all(eq(CONVERSATION_ID))).thenReturn(Observable.empty());
+        when(mSubscribeToMessageUpdates.forConversation(any())).thenReturn(Observable.empty());
         when(mSubscribeToUsersTyping.execute(any())).thenReturn(Observable.empty());
         when(mMarkConversationRead.execute(any())).thenReturn(Observable.empty());
 
         // When
-        mTarget.onCreate();
+        MessageListPresenter<TestMessage> target = createPresenter();
+        target.onStart();
 
         // Then
-        verify(mLoadMessages).execute(eq(CHAT_ID), any());
+        verify(mLoadMessages).all(eq(CONVERSATION_ID));
     }
 
-    @Test
     public void viewUpdatedWithMessages() {
         // Given
-        when(mGetConversation.execute(any())).thenReturn(Observable.just(new ExampleConversation("id", "name", Collections.emptyList(), null, 0)));
-        List<ExampleMessage> messages = Collections.singletonList(ExampleMessage.createTimestamp(0));
-        PublishSubject<List<ExampleMessage>> messagePublisher = PublishSubject.create();
-        when(mLoadMessages.execute(eq(CHAT_ID), isNull(ExampleMessage.class))).thenAnswer(invocation -> {
-            messagePublisher.onNext(messages);
-            return Observable.just(true);
+        when(mGetConversation.execute(any())).thenReturn(Observable.just(new TestConversation()));
+        List<TestMessage> messages = Collections.singletonList(new TestMessage());
+        LoadResult<TestMessage> loadResult = new LoadResult<>(messages, false, false);
+        PublishSubject<Update<TestMessage>> updatePublisher = PublishSubject.create();
+        when(mLoadMessages.all(eq(CONVERSATION_ID))).thenAnswer(invocation -> {
+            return Observable.just(loadResult);
         });
-        when(mSubscribeToMessages.execute(eq(CHAT_ID))).thenReturn(messagePublisher);
+        when(mSubscribeToMessageUpdates.forConversation(eq(CONVERSATION_ID))).thenReturn(updatePublisher);
         when(mSubscribeToUsersTyping.execute(any())).thenReturn(Observable.empty());
         when(mMarkConversationRead.execute(any())).thenReturn(Observable.empty());
 
         // When
-        mTarget.onCreate();
+        MessageListPresenter<TestMessage> target = createPresenter();
+        target.onStart();
 
         // Then
         verify(mView).showMessages(messages);
     }
-// TODO: These tests are currently broken due to a scheduler issue.  Need to be reexamined and fixed.
-//    @Test
-//    public void requestMoreMessagesPassesPreviousOldestMessage() {
-//        // Given
-//        when(mGetConversation.execute(any())).thenReturn(Observable.just(new ExampleConversation("id", "name", Collections.emptyList(), null, 0)));
-//        final List<ExampleMessage> messages = Collections.singletonList(ExampleMessage.createTimestamp(0));
-//        final PublishSubject<List<ExampleMessage>> messagePublisher = PublishSubject.create();
-//        when(mLoadMessages.execute(eq(CHAT_ID), isNull(ExampleMessage.class))).thenAnswer(invocation -> {
-//            messagePublisher.onNext(messages);
-//            return Observable.just(true);
-//        });
-//        when(mSubscribeToMessages.execute(any())).thenReturn(messagePublisher);
-//        when(mSubscribeToUsersTyping.execute(any())).thenReturn(Observable.empty());
-//        when(mMarkConversationRead.execute(any())).thenReturn(Observable.empty());
-//
-//        // When
-//        mTarget.onCreate();
-//        mTarget.onMoreMessagesRequired();
-//
-//
-//        // Then
-//        InOrder inOrder = inOrder(mLoadMessages, mLoadMessages);
-//        inOrder.verify(mLoadMessages).execute(CHAT_ID, null);
-//        inOrder.verify(mLoadMessages).execute(CHAT_ID, messages.get(0));
-//    }
-//
-//    @Test
-//    public void dontRequestMoreMessagesIfConversationEmpty() {
-//        // Given
-//        when(mGetConversation.execute(any())).thenReturn(Observable.just(new ExampleConversation("id", "name", Collections.emptyList(), null, 0)));
-//        when(mLoadMessages.execute(eq(CHAT_ID), isNull(ExampleMessage.class))).thenReturn(Observable.empty());
-//        when(mSubscribeToMessages.execute(any())).thenReturn(Observable.empty());
-//        when(mSubscribeToUsersTyping.execute(any())).thenReturn(Observable.empty());
-//        when(mMarkConversationRead.execute(any())).thenReturn(Observable.empty());
-//
-//        // When
-//        mTarget.onCreate();
-//        mTarget.onMoreMessagesRequired();
-//
-//
-//        // Then
-//        verify(mLoadMessages, times(1)).execute(eq(CHAT_ID), isNull(ExampleMessage.class)); // Requested once in onCreate
-//    }
 
+
+    @Test
+    public void dontRequestMoreMessagesIfConversationEmpty() {
+        // Given
+        when(mGetConversation.execute(any())).thenReturn(Observable.just(new TestConversation()));
+        Observable<LoadResult<TestMessage>> noMessages = Observable.just(new LoadResult<>(Collections.emptyList(), false, false));
+        when(mLoadMessages.all(eq(CONVERSATION_ID))).thenReturn(noMessages);
+        when(mSubscribeToMessageUpdates.forConversation(any())).thenReturn(Observable.empty());
+        when(mSubscribeToUsersTyping.execute(any())).thenReturn(Observable.empty());
+        when(mMarkConversationRead.execute(any())).thenReturn(Observable.empty());
+
+        // When
+        MessageListPresenter<TestMessage> target = createPresenter();
+        target.onStart();
+        target.onMoreMessagesRequired();
+
+
+        // Then
+        verify(mLoadMessages, times(1)).all(eq(CONVERSATION_ID)); // Requested once in onCreate
+    }
+
+    @NonNull
+    private MessageListPresenter<TestMessage> createPresenter() {
+        return new BaseMessageListPresenter<>(CONVERSATION_ID, mView, mLoadMessages, mSubscribeToMessageUpdates, mMarkConversationRead, mSendMessage);
+    }
+
+    private static class TestMessage implements Message {
+    }
+
+    private static class TestConversation implements Conversation {
+    }
 
 }

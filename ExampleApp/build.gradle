@@ -43,7 +43,7 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile 'com.parse:parse-android:1.13.0'
 
-    compile 'net.hockeyapp.android:HockeySDK:3.7.1'
+    compile 'net.hockeyapp.android:HockeySDK:4.0.1'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'

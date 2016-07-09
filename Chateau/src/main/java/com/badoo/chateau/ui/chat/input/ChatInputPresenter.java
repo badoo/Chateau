@@ -1,41 +1,20 @@
 package com.badoo.chateau.ui.chat.input;
 
-import android.net.Uri;
 import android.support.annotation.NonNull;
 
-import com.badoo.barf.mvp.FlowListener;
-import com.badoo.barf.mvp.MvpView;
 import com.badoo.barf.mvp.MvpPresenter;
+import com.badoo.barf.mvp.MvpView;
+import com.badoo.chateau.core.model.Message;
 
 /**
- * Presenter managing the input part (text, images, etc) of the chat screen
+ * Presenter managing the text input part of the chat screen
  */
-public interface ChatInputPresenter extends MvpPresenter {
+public interface ChatInputPresenter<M extends Message> extends MvpPresenter {
 
     /**
      * Called when a message has been entered and is ready to be sent
      */
-    void onSendMessage(@NonNull String message);
-
-    /**
-     * Called when the user starts the "Send photo from album" flow
-     */
-    void onPickImage();
-
-    /**
-     * Called when the user starts the "Send photo from album" flow
-     */
-    void onTakePhoto();
-
-    /**
-     * Called after either a photo was picked from gallery or from the camera
-     */
-    void onSendImage(@NonNull Uri uri);
-
-    /**
-     * Called when the user is typing a message, should be throttled (don't call for every keystroke)
-     */
-    void onUserTyping();
+    void onSendMessage(@NonNull M message);
 
     interface ChatInputView extends MvpView {
 
@@ -46,17 +25,5 @@ public interface ChatInputPresenter extends MvpPresenter {
 
     }
 
-    interface ChatInputFlowListener extends FlowListener {
 
-        /**
-         * Request an image to be picked from gallery
-         */
-        void requestPickLocalImageForMessage();
-
-        /**
-         * Request an image to be taken using the camera
-         */
-        void requestTakePhotoForMessage();
-
-    }
 }

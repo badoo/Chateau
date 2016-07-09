@@ -1,4 +1,4 @@
-package com.badoo.chateau.example.ui.util;
+package com.badoo.chateau.extras.recycle;
 
 import android.support.annotation.CallSuper;
 import android.support.v7.widget.RecyclerView;
