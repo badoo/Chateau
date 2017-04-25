@@ -1,6 +1,6 @@
 ### Update: Preview3 is out now, containing significant (breaking) changes to almost all presenters and data source definitions. More detailed information about the change will be posted soon.
 
-#Chateau
+# Chateau
 
 Chateau is a framework for adding (or improving) chat functionality in any Android app. Built in a modular way using MVP and Clean Architecture, it can easily be integrated with your chat backend with only minor changes to the included UI.
 
@@ -251,5 +251,5 @@ I'm also a senior Android developer at Badoo where I've been since moving to Lon
 
 Source code is distributed under MIT license.
 
-##Blog
+## Blog
 Read more on our [tech blog](http://techblog.badoo.com/) or explore our other [open source projects](https://github.com/badoo)
